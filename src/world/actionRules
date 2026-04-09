@@ -1,0 +1,193 @@
+// src/world/actionRules.js
+// NPCタイプ別行動確率テーブル
+// LLM不使用。worldSim.js が毎ターン参照する。
+ 
+/**
+ * 行動確率テーブル
+ * alertLevel (0.0〜1.0) または loyalty (0〜100) で帯域を選択する
+ */
+export const ACTION_RULES = {
+  // ── 敵スパイ ──
+  enemy: {
+    low_alert: {          // alertLevel 0.0〜0.3: 積極工作フェーズ
+      dead_drop:           0.30,
+      recruit_informant:   0.20,
+      intelligence_gather: 0.30,
+      meet_handler:        0.20,
+    },
+    mid_alert: {          // alertLevel 0.3〜0.7: 慎重行動フェーズ
+      surveillance_check:  0.40,
+      route_change:        0.30,
+      go_dormant:          0.20,
+      emergency_contact:   0.10,
+    },
+    high_alert: {         // alertLevel 0.7〜1.0: 退避・妨害フェーズ
+      flee:                0.40,
+      counter_measure:     0.30,
+      go_dormant:          0.20,
+      sacrifice_asset:     0.10,
+    },
+  },
+ 
+  // ── 協力者（インフォーマント） ──
+  informant: {
+    high_loyalty: {       // loyalty 70〜100
+      gather_info:         0.50,
+      report_to_handler:   0.30,
+      maintain_cover:      0.20,
+    },
+    mid_loyalty: {        // loyalty 30〜70
+      gather_info:         0.35,
+      maintain_cover:      0.35,
+      withhold_info:       0.20,
+      report_to_handler:   0.10,
+    },
+    low_loyalty: {        // loyalty 0〜30: 離反リスク
+      withhold_info:       0.30,
+      contact_enemy:       0.20,
+      maintain_cover:      0.30,
+      gather_info:         0.20,
+    },
+  },
+ 
+  // ── 上司・上位組織 ──
+  superior: {
+    default: {
+      request_report:      0.40,
+      political_pressure:  0.30,
+      budget_review:       0.20,
+      approve_quietly:     0.10,
+    },
+    high_pressure: {      // bureaucracyPressure >= 0.6
+      demand_report:       0.35,
+      cut_budget:          0.25,
+      political_pressure:  0.25,
+      threaten_reassign:   0.15,
+    },
+  },
+ 
+  // ── 捜査員（プレイヤー側） ──
+  investigator: {
+    fresh: {              // fatigue 0〜30
+      full_surveillance:   0.40,
+      info_gathering:      0.35,
+      trust_building:      0.25,
+    },
+    tired: {              // fatigue 30〜70
+      light_surveillance:  0.45,
+      info_gathering:      0.40,
+      mistake_risk:        0.15,
+    },
+    exhausted: {          // fatigue 70〜100
+      minimal_duty:        0.50,
+      mistake_risk:        0.30,
+      cover_blown_risk:    0.20,
+    },
+  },
+ 
+  // ── マスコミ ──
+  media: {
+    low_interest: {       // PressHeat < 0.3
+      routine_coverage:    0.60,
+      source_seeking:      0.30,
+      tip_following:       0.10,
+    },
+    high_interest: {      // PressHeat >= 0.3
+      investigative_report: 0.40,
+      source_seeking:       0.35,
+      leak_publication:     0.25,
+    },
+  },
+ 
+  // ── 他官庁 ──
+  agency: {
+    cooperative: {
+      share_intelligence:  0.40,
+      joint_operation:     0.30,
+      routine_liaison:     0.30,
+    },
+    hostile: {
+      withhold_intel:      0.40,
+      bureaucratic_block:  0.35,
+      report_to_superior:  0.25,
+    },
+  },
+};
+ 
+/**
+ * NPCのタイプ・状態に応じた行動帯域キーを返す
+ * @param {"enemy"|"informant"|"superior"|"investigator"|"media"|"agency"} type
+ * @param {object} npcState - npcStates[id]
+ * @param {object} npc - registry の NPC オブジェクト
+ * @param {object} GS - ゲームステート
+ * @returns {string} 帯域キー
+ */
+export function resolveBand(type, npcState, npc, GS) {
+  switch (type) {
+    case "enemy": {
+      const al = npcState?.alertLevel ?? 0;
+      if (al < 0.3) return "low_alert";
+      if (al < 0.7) return "mid_alert";
+      return "high_alert";
+    }
+    case "informant": {
+      const loy = npc?.loyalty ?? 50;
+      if (loy >= 70) return "high_loyalty";
+      if (loy >= 30) return "mid_loyalty";
+      return "low_loyalty";
+    }
+    case "superior": {
+      const maxPressure = Math.max(0, ...Object.values(GS.bureaucracyPressure ?? {}));
+      return maxPressure >= 0.6 ? "high_pressure" : "default";
+    }
+    case "investigator": {
+      const fat = npc?.fatigue ?? 0;
+      if (fat < 30) return "fresh";
+      if (fat < 70) return "tired";
+      return "exhausted";
+    }
+    case "media": {
+      return GS.meters.PressHeat >= 0.3 ? "high_interest" : "low_interest";
+    }
+    case "agency": {
+      // bureaucracyPressure の当該官庁エントリで判断
+      const pressure = GS.bureaucracyPressure?.[npc?.org] ?? 0;
+      return pressure >= 0.5 ? "hostile" : "cooperative";
+    }
+    default:
+      return "default";
+  }
+}
+ 
+/**
+ * 確率テーブルから1つの行動をサンプリングする（multinomial）
+ * @param {object} table - { action: weight, ... }
+ * @returns {string} 選ばれた行動名
+ */
+export function sampleAction(table) {
+  const total   = Object.values(table).reduce((s, w) => s + w, 0);
+  let   rand    = Math.random() * total;
+  for (const [action, weight] of Object.entries(table)) {
+    rand -= weight;
+    if (rand <= 0) return action;
+  }
+  // フォールバック（浮動小数点誤差対策）
+  return Object.keys(table)[Object.keys(table).length - 1];
+}
+ 
+/**
+ * NPC の行動を決定して返す
+ * @param {"enemy"|"informant"|"superior"|"investigator"|"media"|"agency"} type
+ * @param {object} npcState
+ * @param {object} npc
+ * @param {object} GS
+ * @returns {string} 行動名
+ */
+export function decideAction(type, npcState, npc, GS) {
+  const rules = ACTION_RULES[type];
+  if (!rules) return "idle";
+ 
+  const band  = resolveBand(type, npcState, npc, GS);
+  const table = rules[band] ?? rules[Object.keys(rules)[0]];
+  return sampleAction(table);
+}
