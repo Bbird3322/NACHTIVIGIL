@@ -431,6 +431,12 @@
         <div class="form-hint">ブラウザから接続できない場合は Ollama の CORS 設定を確認してください。</div>
       </div>
 
+      <div class="form-group" id="grp-ollama-num-ctx">
+        <label for="cfg-ollama-num-ctx">Ollama num_ctx</label>
+        <input type="number" id="cfg-ollama-num-ctx" min="8192" step="1024" placeholder="8192">
+        <div class="form-hint">長いセッション向けに 8192 以上を推奨します。Ollama のデフォルト 2048 では会話履歴が溢れやすくなります。</div>
+      </div>
+
       <div class="form-group" id="grp-api-key" style="display:none">
         <label for="cfg-api-key">APIキー</label>
         <input type="password" id="cfg-api-key" placeholder="sk-...">
@@ -492,11 +498,13 @@
     const ollamaUrlEl = document.getElementById("cfg-ollama-url");
     const apiKeyEl = document.getElementById("cfg-api-key");
     const languageSel = document.getElementById("cfg-language");
+    const ollamaNumCtxEl = document.getElementById("cfg-ollama-num-ctx");
     const gmModelEl = document.getElementById("cfg-gm-model");
     const npcModelEl = document.getElementById("cfg-npc-model");
     const ignoreRamCheckEl = document.getElementById("cfg-ignore-ram-check");
     const testResultEl = document.getElementById("test-result");
     const grpOllamaUrl = document.getElementById("grp-ollama-url");
+    const grpOllamaNumCtx = document.getElementById("grp-ollama-num-ctx");
     const grpApiKey = document.getElementById("grp-api-key");
     const grpCustom = document.getElementById("grp-custom");
 
@@ -533,6 +541,10 @@
       if (npcLabel) npcLabel.textContent = t("ui.npcModel");
       const ollamaHint = document.querySelector("#grp-ollama-url .form-hint");
       if (ollamaHint) ollamaHint.textContent = t("ui.ollamaHint");
+      const ollamaNumCtxLabel = document.querySelector("label[for='cfg-ollama-num-ctx']");
+      if (ollamaNumCtxLabel) ollamaNumCtxLabel.textContent = t("ui.ollamaNumCtx");
+      const ollamaNumCtxHint = document.querySelector("#grp-ollama-num-ctx .form-hint");
+      if (ollamaNumCtxHint) ollamaNumCtxHint.textContent = t("ui.ollamaNumCtxHint");
       const ramCheckbox = document.querySelector("#cfg-ignore-ram-check");
       if (ramCheckbox) {
         const ramLabelNode = ramCheckbox.parentElement.childNodes[2];
@@ -647,6 +659,7 @@
       providerSel.value = cfg.provider;
       languageSel.value = cfg.language ?? "ja";
       ollamaUrlEl.value = cfg.ollamaUrl;
+      ollamaNumCtxEl.value = cfg.ollamaNumCtx ?? 8192;
       apiKeyEl.value = cfg.apiKey;
       updateProviderUI(cfg.provider);
       updatePresetOptions(cfg.provider, cfg.preset);
@@ -664,6 +677,7 @@
 
     function updateProviderUI(provider) {
       grpOllamaUrl.style.display = provider === "ollama" ? "" : "none";
+      grpOllamaNumCtx.style.display = provider === "ollama" ? "" : "none";
       grpApiKey.style.display = provider === "ollama" ? "none" : "";
     }
 
@@ -705,6 +719,7 @@
       return {
         provider,
         ollamaUrl: ollamaUrlEl.value.trim() || "http://localhost:11434",
+        ollamaNumCtx: Number(ollamaNumCtxEl.value) || 8192,
         apiKey: apiKeyEl.value.trim(),
         language: languageSel.value,
         preset: presetKey,

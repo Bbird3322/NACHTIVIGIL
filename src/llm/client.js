@@ -103,6 +103,7 @@ function buildBody(modelCfg, systemPrompt, messages) {
       max_tokens: 2048,
       system: systemPrompt,
       messages,
+      thinking: { type: "disabled" },
     };
   }
 
@@ -110,6 +111,8 @@ function buildBody(modelCfg, systemPrompt, messages) {
     model: modelCfg.model,
     messages: [{ role: "system", content: systemPrompt }, ...messages],
     stream: false,
+    think: false,
+    reasoning: { enabled: false },
   };
 
   if (CFG.provider === "ollama") {
@@ -120,18 +123,25 @@ function buildBody(modelCfg, systemPrompt, messages) {
         top_p: 0.95,
         top_k: 64,
         repeat_penalty: 1,
-        num_ctx: 8192,
+        num_ctx: normalizeNumCtx(CFG.ollamaNumCtx),
       },
     };
   }
 
   if (CFG.provider === "openrouter") {
-    return modelCfg.thinking === false
-      ? { ...base, reasoning: { enabled: false } }
-      : base;
+    return {
+      ...base,
+      plugins: [],
+    };
   }
 
   return base;
+}
+
+function normalizeNumCtx(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 8192;
+  return Math.max(8192, Math.floor(parsed));
 }
 
 function getEndpoint() {

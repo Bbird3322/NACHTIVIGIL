@@ -60,6 +60,7 @@
 const DEFAULT_CFG = {
   provider: "ollama",
   ollamaUrl: "http://localhost:11434",
+  ollamaNumCtx: 8192,
   apiKey: "",
   language: "ja",
   preset: "high",
@@ -105,9 +106,12 @@ export function normalizeCfg(cfg) {
     language: cfg.language === "en" ? "en" : "ja",
     preset: requestedPreset,
     ignoreRamCheck: Boolean(cfg.ignoreRamCheck),
+    ollamaNumCtx: Number(cfg.ollamaNumCtx) || DEFAULT_CFG.ollamaNumCtx,
     gm: { ...structuredClone(DEFAULT_CFG.gm), ...cfg.gm },
     npc: { ...structuredClone(DEFAULT_CFG.npc), ...cfg.npc },
   };
+
+  normalized.ollamaNumCtx = Math.max(8192, Math.floor(normalized.ollamaNumCtx));
 
   if (requestedPreset !== "custom" && preset) {
     normalized = {
@@ -127,6 +131,9 @@ export function normalizeCfg(cfg) {
     };
   }
 
+  normalized.gm.thinking = false;
+  normalized.npc.thinking = false;
+  
   return normalized;
 }
 
