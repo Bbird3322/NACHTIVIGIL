@@ -5,7 +5,7 @@
 // GS — ゲームの全状態
 // ─────────────────────────────────────────────
  
-export const GS = {
+const GS = {
   // メタ
   scenarioId:       "scenario_jp2025",
   day:              1,
@@ -95,7 +95,7 @@ export const GS = {
 // playerKnowledge — プレイヤーの既知情報ストア
 // ─────────────────────────────────────────────
  
-export const playerKnowledge = {
+const playerKnowledge = {
   // { id, content, sourceEvent, sourceIntel, acquiredDay, reliability, tags }
   confirmedFacts: [],
   suspicions:     [],
@@ -113,7 +113,7 @@ export const playerKnowledge = {
  * @param {"info"|"warning"|"alert"|"system"} type
  * @param {string} desc
  */
-export function addLog(type, desc) {
+function addLog(type, desc) {
   GS.log.push({ day: GS.day, type, desc });
   if (GS.log.length > 60) GS.log.shift();
 }
@@ -123,7 +123,7 @@ export function addLog(type, desc) {
  * @param {string} key
  * @param {number} value
  */
-export function setMeter(key, value) {
+function setMeter(key, value) {
   if (!(key in GS.meters)) {
     console.warn(`[GS] 未知のメーター: ${key}`);
     return;
@@ -136,7 +136,7 @@ export function setMeter(key, value) {
  * JSONパース失敗・不正値があっても前の状態を維持する
  * @param {object} partial
  */
-export function mergeStateFromTag(partial) {
+function mergeStateFromTag(partial) {
   try {
     if (partial.meters && typeof partial.meters === "object") {
       for (const [k, v] of Object.entries(partial.meters)) {
@@ -168,7 +168,7 @@ export function mergeStateFromTag(partial) {
  * @param {string} scenarioId
  * @param {string} difficulty
  */
-export function resetGS(scenarioInitVars = {}, scenarioId = "scenario_jp2025", difficulty = "DECRYPTED") {
+function resetGS(scenarioInitVars = {}, scenarioId = "scenario_jp2025", difficulty = "DECRYPTED") {
   GS.scenarioId         = scenarioId;
   GS.day                = 1;
   GS.date               = "2025-04-07";

@@ -1,7 +1,7 @@
 // config/modelPresets.js
 // GMとNPCの2トラック構成。thinkingは全モデルで必ずオフ
  
-export const MODEL_PRESETS = {
+const MODEL_PRESETS = {
   ollama: {
     ultra: {
       label: "Ultra（VRAM 24GB〜）",
@@ -61,7 +61,7 @@ export const MODEL_PRESETS = {
 };
  
 // localStorage に永続化するデフォルト設定
-export const DEFAULT_CFG = {
+const DEFAULT_CFG = {
   provider:  "ollama",
   ollamaUrl: "http://localhost:11434",
   apiKey:    "",
@@ -71,7 +71,7 @@ export const DEFAULT_CFG = {
 };
  
 /** 設定を localStorage から読み込む */
-export function loadCfg() {
+function loadCfg() {
   try {
     const raw = localStorage.getItem("noctivigil_llm_cfg");
     if (!raw) return { ...DEFAULT_CFG };
@@ -82,11 +82,11 @@ export function loadCfg() {
 }
  
 /** 設定を localStorage に保存する */
-export function saveCfg(cfg) {
+function saveCfg(cfg) {
   localStorage.setItem("noctivigil_llm_cfg", JSON.stringify(cfg));
 }
  
 /** プリセットからGM/NPCモデル設定を取得する */
-export function resolvePreset(provider, preset) {
+function resolvePreset(provider, preset) {
   return MODEL_PRESETS[provider]?.[preset] ?? null;
 }

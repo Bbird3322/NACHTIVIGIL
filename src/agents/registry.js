@@ -3,7 +3,7 @@
  
 const _npcs = new Map();
  
-export const registry = {
+const registry = {
   /**
    * NPCを登録する
    * @param {object} npc - id フィールドを持つNPCオブジェクト

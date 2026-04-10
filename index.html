@@ -241,7 +241,7 @@
       display: none;
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.7);
-      z-index: 100;
+      z-index: 300;
       align-items: center;
       justify-content: center;
     }
@@ -284,9 +284,223 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  
+    /* ────────────────────────────────────────
+       タイトル画面
+    ──────────────────────────────────────── */
+    #title-screen {
+      position: fixed;
+      inset: 0;
+      background: #080b0f;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: title-fadein 1s ease both;
+      overflow: hidden;
+    }
+    #title-screen.hiding {
+      animation: title-fadeout 0.6s ease forwards;
+      pointer-events: none;
+    }
+    @keyframes title-fadein {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes title-fadeout {
+      from { opacity: 1; }
+      to   { opacity: 0; }
+    }
+ 
+    /* グリッド背景 */
+    #title-screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(88,166,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(88,166,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+ 
+    /* スキャンライン */
+    #title-screen::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.08) 3px,
+        rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+    }
+ 
+    .title-corner {
+      position: absolute;
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-family: "Courier New", monospace;
+      opacity: 0.6;
+    }
+    .title-corner--tl { top: 20px; left: 24px; }
+    .title-corner--tr { top: 20px; right: 24px; text-align: right; }
+    .title-corner--bl { bottom: 20px; left: 24px; }
+    .title-corner--br { bottom: 20px; right: 24px; text-align: right; }
+ 
+    .title-content {
+      position: relative;
+      text-align: center;
+      max-width: 700px;
+      padding: 48px 40px;
+      z-index: 1;
+    }
+ 
+    .title-eyebrow {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      font-family: "Courier New", monospace;
+      margin-bottom: 20px;
+    }
+ 
+    .title-logo {
+      font-size: clamp(40px, 7vw, 80px);
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 8px;
+      animation: title-glow 4s ease-in-out infinite alternate;
+    }
+    .title-logo .title-accent { color: var(--accent); }
+ 
+    @keyframes title-glow {
+      from { text-shadow: 0 0 24px rgba(88,166,255,0.25), 0 0 60px rgba(88,166,255,0.08); }
+      to   { text-shadow: 0 0 40px rgba(88,166,255,0.5),  0 0 100px rgba(88,166,255,0.18); }
+    }
+ 
+    .title-rule {
+      width: 240px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin: 22px auto;
+    }
+ 
+    .title-tagline {
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+    .title-en {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 52px;
+    }
+ 
+    .title-actions {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      margin-bottom: 36px;
+    }
+ 
+    .title-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 11px 32px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+      letter-spacing: 0.1em;
+      transition: all 0.2s ease;
+    }
+    .title-btn:hover {
+      background: rgba(88,166,255,0.07);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .title-btn--primary {
+      background: rgba(31,111,235,0.18);
+      border-color: var(--accent-dim);
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .title-btn--primary:hover {
+      background: rgba(31,111,235,0.35);
+      border-color: var(--accent);
+    }
+ 
+    .title-hint {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+    }
+    .title-hint kbd {
+      font-family: "Courier New", monospace;
+      font-size: 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+ 
+    /* ブリップ点滅アニメーション（右上コーナー） */
+    .title-blink {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--good);
+      margin-right: 6px;
+      animation: blink-dot 1.4s ease-in-out infinite;
+      vertical-align: middle;
+    }
+    @keyframes blink-dot {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.2; }
+    }
   </style>
 </head>
 <body>
+ <!-- ────────────────────────────────────────
+     タイトル画面
+──────────────────────────────────────── -->
+<div id="title-screen">
+  <span class="title-corner title-corner--tl">NACHTIVIGIL // SYS</span>
+  <span class="title-corner title-corner--tr"><span class="title-blink"></span>STANDBY</span>
+  <span class="title-corner title-corner--bl">CLASSIFIED // INTERNAL USE ONLY</span>
+  <span class="title-corner title-corner--br">v0.1.0-alpha</span>
+ 
+  <div class="title-content">
+    <div class="title-eyebrow">公安警察 諜報シミュレーション</div>
+    <div class="title-logo">NACHT<span class="title-accent">VIGIL</span></div>
+    <div class="title-rule"></div>
+    <div class="title-tagline">捜査・諜報・協力者育成シミュレーション</div>
+    <div class="title-en">Surveillance &nbsp;·&nbsp; Intelligence &nbsp;·&nbsp; Asset Development</div>
+    <div class="title-actions">
+      <button class="title-btn title-btn--primary" id="btn-start-game">ゲーム開始</button>
+      <button class="title-btn" id="btn-title-settings">⚙ 設定</button>
+    </div>
+    <div class="title-hint">
+      OpenRouter / Ollama / Anthropic API 対応 &nbsp;&nbsp;
+      <kbd>ESC</kbd> で設定を開く
+    </div>
+  </div>
+</div>
+ 
+<!-- ────────────────────────────────────────
+     メインゲームUI
+──────────────────────────────────────── -->
  
 <!-- ヘッダー -->
 <header id="header">
@@ -367,15 +581,49 @@
   </div>
 </div>
  
-<script type="module">
-import { initFeed, addMessage, addOperationCard, addLoader, clearFeed } from "./src/ui/feed.js";
-import { initSidebar, render as renderSidebar } from "./src/ui/sidebar.js";
-import { initOpPanel, render as renderOpPanel, startOperation } from "./src/ui/opPanel.js";
-import { sendToGM, getOpeningMessage, clearGMHistory } from "./src/agents/gm.js";
-import { GS, resetGS } from "./src/core/gameState.js";
-import { setCfg, getCfg, testConnection } from "./src/llm/client.js";
-import { loadCfg, saveCfg, MODEL_PRESETS, resolvePreset } from "./config/modelPresets.js";
+<!-- ────────────────────────────────────────
+     スクリプト（依存順に読み込む）
+     ※ ES modules 不使用 → file:// で直接開ける
+──────────────────────────────────────── -->
+<script src="config/modelPresets.js"></script>
+<script src="src/core/gameState.js"></script>
+<script src="src/agents/registry.js"></script>
+<script src="src/llm/client.js"></script>
+<script src="src/llm/memory.js"></script>
+<script src="src/agents/gm.js"></script>
+<script src="src/ui/feed.js"></script>
+<script src="src/ui/sidebar.js"></script>
+<script src="src/ui/opPanel.js"></script>
  
+<script>
+// ─────────────────────────────────────────────
+// タイトル画面
+// ─────────────────────────────────────────────
+ 
+const titleScreen = document.getElementById("title-screen");
+ 
+document.getElementById("btn-start-game").addEventListener("click", startGame);
+document.getElementById("btn-title-settings").addEventListener("click", openModal);
+ 
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && titleScreen && titleScreen.parentNode) {
+    openModal();
+  }
+});
+ 
+function startGame() {
+  titleScreen.classList.add("hiding");
+  titleScreen.addEventListener("animationend", () => titleScreen.remove(), { once: true });
+ 
+  addMessage(
+    "**NACHTIVIGIL** へようこそ。\n" +
+    "公安警察 捜査・諜報・協力者育成シミュレーション。\n\n" +
+    "まず設定（⚙）でLLMモデルを設定し、接続テストを行ってください。\n" +
+    "設定後、「シナリオ開始」と入力するとゲームが始まります。",
+    "system"
+  );
+}
+
 // ─────────────────────────────────────────────
 // 初期化
 // ─────────────────────────────────────────────
@@ -388,14 +636,7 @@ initFeed(feedEl);
 initSidebar(sidebarEl);
 initOpPanel(opPanelEl);
  
-// 起動メッセージ
-addMessage(
-  `**NACHTIVIGIL** へようこそ。\n` +
-  `公安警察 捜査・諜報・協力者育成シミュレーション。\n\n` +
-  `まず設定（⚙）でLLMモデルを設定し、接続テストを行ってください。\n` +
-  `設定後、「シナリオ開始」と入力するとゲームが始まります。`,
-  "system"
-);
+
  
 // ─────────────────────────────────────────────
 // 入力送信
@@ -448,7 +689,7 @@ async function handleSend() {
     if (e.name === "AbortError") {
       addMessage("（送信を中断しました）", "system");
     } else {
-      addMessage(`❌ エラー: ${e.message}`, "alert");
+      addMessage("エラー: " + e.message, "alert");
       console.error(e);
     }
   } finally {
@@ -470,18 +711,18 @@ inputEl.addEventListener("keydown", (e) => {
 // 設定モーダル
 // ─────────────────────────────────────────────
  
-const modal       = document.getElementById("settings-modal");
-const providerSel = document.getElementById("cfg-provider");
-const presetSel   = document.getElementById("cfg-preset");
-const ollamaUrlEl = document.getElementById("cfg-ollama-url");
-const apiKeyEl    = document.getElementById("cfg-api-key");
-const gmModelEl   = document.getElementById("cfg-gm-model");
-const npcModelEl  = document.getElementById("cfg-npc-model");
-const testResultEl= document.getElementById("test-result");
-const grpOllamaUrl= document.getElementById("grp-ollama-url");
-const grpApiKey   = document.getElementById("grp-api-key");
-const grpCustom   = document.getElementById("grp-custom");
- 
+const modal        = document.getElementById("settings-modal");
+const providerSel  = document.getElementById("cfg-provider");
+const presetSel    = document.getElementById("cfg-preset");
+const ollamaUrlEl  = document.getElementById("cfg-ollama-url");
+const apiKeyEl     = document.getElementById("cfg-api-key");
+const gmModelEl    = document.getElementById("cfg-gm-model");
+const npcModelEl   = document.getElementById("cfg-npc-model");
+const testResultEl = document.getElementById("test-result");
+const grpOllamaUrl = document.getElementById("grp-ollama-url");
+const grpApiKey    = document.getElementById("grp-api-key");
+const grpCustom    = document.getElementById("grp-custom");
+
 document.getElementById("btn-settings").addEventListener("click", openModal);
 document.getElementById("btn-cfg-cancel").addEventListener("click", closeModal);
 document.getElementById("btn-cfg-save").addEventListener("click", saveSettings);
@@ -507,13 +748,13 @@ function closeModal() {
 }
  
 function updateProviderUI(provider) {
-  grpOllamaUrl.style.display = provider === "ollama"     ? "" : "none";
-  grpApiKey.style.display    = provider !== "ollama"     ? "" : "none";
+  grpOllamaUrl.style.display = provider === "ollama" ? "" : "none";
+  grpApiKey.style.display    = provider !== "ollama" ? "" : "none";
 }
  
 function updatePresetOptions(provider, currentPreset) {
   presetSel.innerHTML = "";
-  const presets = MODEL_PRESETS[provider] ?? {};
+  const presets = MODEL_PRESETS[provider] || {};
   for (const [key, val] of Object.entries(presets)) {
     const opt = document.createElement("option");
     opt.value = key;
@@ -563,8 +804,7 @@ async function runConnectionTest() {
   testResultEl.textContent = "接続テスト中...";
   testResultEl.className   = "";
   document.getElementById("btn-test-conn").disabled = true;
- 
-  // 一時的に現在入力値で setCfg
+
   setCfg({
     provider:  providerSel.value,
     ollamaUrl: ollamaUrlEl.value.trim() || "http://localhost:11434",
@@ -576,14 +816,14 @@ async function runConnectionTest() {
   try {
     const r = await testConnection();
     if (r.ok) {
-      testResultEl.textContent = `✓ 接続成功  GM: ${r.gmMs}ms / NPC: ${r.npcMs}ms`;
+      testResultEl.textContent = "✓ 接続成功  GM: " + r.gmMs + "ms / NPC: " + r.npcMs + "ms";
       testResultEl.className   = "ok";
     } else {
-      testResultEl.textContent = `✗ 接続失敗: ${r.error}`;
+      testResultEl.textContent = "✗ 接続失敗: " + r.error;
       testResultEl.className   = "err";
     }
   } catch (e) {
-    testResultEl.textContent = `✗ エラー: ${e.message}`;
+    testResultEl.textContent = "✗ エラー: " + e.message;
     testResultEl.className   = "err";
   } finally {
     document.getElementById("btn-test-conn").disabled = false;
