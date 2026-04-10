@@ -477,6 +477,7 @@
     import { initOpPanel, renderOpPanel, startOperation } from "./src/ui/opPanel.js";
     import { getCfg, setCfg, testConnection } from "./src/llm/client.js";
     import { sendToGM } from "./src/agents/gm.js";
+    import { setLanguage, t } from "./src/core/i18n.js";
     import { initDifficulty } from "./src/core/mechanics.js";
 
     const titleScreen = document.getElementById("title-screen");
@@ -499,74 +500,7 @@
     const grpApiKey = document.getElementById("grp-api-key");
     const grpCustom = document.getElementById("grp-custom");
 
-    const I18N = {
-      ja: {
-        start: "開始",
-        settings: "設定",
-        scenarioStandby: "シナリオ待機中",
-        loading: "読み込み中...",
-        inputPlaceholder: "命令を入力してください... (Ctrl+Enter で送信)",
-        send: "送信",
-        operations: "作戦",
-        modalTitle: "モデル設定",
-        provider: "プロバイダ",
-        language: "表示言語",
-        apiKey: "APIキー",
-        preset: "プリセット",
-        gmModel: "GMモデル",
-        npcModel: "NPCモデル",
-        ignoreRam: "RAM制限チェックを無効化",
-        ignoreRamHint: "アプリ側の警告や案内を弱めます。Ollama 本体のメモリ制限そのものは解除できません。",
-        ollamaHint: "ブラウザから接続できない場合は Ollama の CORS 設定を確認してください。",
-        test: "接続テスト",
-        cancel: "キャンセル",
-        save: "保存",
-        startupMessage: "**NACHTIVIGIL** 起動完了。設定画面でモデルを確認してから、最初の命令を入力してください。",
-        rejectedOp: "作戦案を却下しました。",
-        abortedRequest: "リクエストを中断しました。",
-        errorPrefix: "エラー",
-        settingsSaved: "設定を保存しました。",
-        testing: "接続テスト中...",
-        testOk: (gm, npc) => `接続成功: GM ${gm}ms / NPC ${npc}ms`,
-        testFail: (msg) => `接続失敗: ${msg}`,
-      },
-      en: {
-        start: "Start",
-        settings: "Settings",
-        scenarioStandby: "Scenario standby",
-        loading: "Loading...",
-        inputPlaceholder: "Enter your order... (Ctrl+Enter to send)",
-        send: "Send",
-        operations: "Operations",
-        modalTitle: "Model Settings",
-        provider: "Provider",
-        language: "Language",
-        apiKey: "API Key",
-        preset: "Preset",
-        gmModel: "GM Model",
-        npcModel: "NPC Model",
-        ignoreRam: "Disable RAM limit check",
-        ignoreRamHint: "This only disables app-side warnings. It cannot bypass Ollama's real memory requirements.",
-        ollamaHint: "If browser access fails, check your Ollama CORS settings.",
-        test: "Test Connection",
-        cancel: "Cancel",
-        save: "Save",
-        startupMessage: "**NACHTIVIGIL** online. Check your model settings, then enter your first order.",
-        rejectedOp: "Operation proposal rejected.",
-        abortedRequest: "Request aborted.",
-        errorPrefix: "Error",
-        settingsSaved: "Settings saved.",
-        testing: "Testing...",
-        testOk: (gm, npc) => `Connected: GM ${gm}ms / NPC ${npc}ms`,
-        testFail: (msg) => `Failed: ${msg}`,
-      },
-    };
-
-    const t = (key, ...args) => {
-      const lang = getCfg().language === "en" ? "en" : "ja";
-      const value = I18N[lang][key];
-      return typeof value === "function" ? value(...args) : value;
-    };
+    setLanguage(getCfg().language);
 
     function applyLanguage() {
       const lang = getCfg().language === "en" ? "en" : "ja";
@@ -575,40 +509,40 @@
         if (el) el.textContent = value;
       };
       document.documentElement.lang = lang;
-      setText("btn-start-game", I18N[lang].start);
-      setText("btn-title-settings", I18N[lang].settings);
-      setText("header-scenario", I18N[lang].scenarioStandby);
-      setText("btn-settings", I18N[lang].settings);
-      inputEl.placeholder = I18N[lang].inputPlaceholder;
-      sendBtn.textContent = I18N[lang].send;
+      setText("btn-start-game", t("ui.start"));
+      setText("btn-title-settings", t("ui.settings"));
+      setText("header-scenario", t("ui.scenarioStandby"));
+      setText("btn-settings", t("ui.settings"));
+      inputEl.placeholder = t("ui.inputPlaceholder");
+      sendBtn.textContent = t("ui.send");
       const panelTitle = opPanelEl.querySelector(".panel-title");
-      if (panelTitle) panelTitle.textContent = I18N[lang].operations;
+      if (panelTitle) panelTitle.textContent = t("ui.operations");
       const modalTitle = modal.querySelector("h2");
-      if (modalTitle) modalTitle.textContent = I18N[lang].modalTitle;
+      if (modalTitle) modalTitle.textContent = t("ui.modalTitle");
       const providerLabel = document.querySelector("label[for='cfg-provider']");
-      if (providerLabel) providerLabel.textContent = I18N[lang].provider;
+      if (providerLabel) providerLabel.textContent = t("ui.provider");
       const languageLabel = document.querySelector("label[for='cfg-language']");
-      if (languageLabel) languageLabel.textContent = I18N[lang].language;
+      if (languageLabel) languageLabel.textContent = t("ui.language");
       const apiKeyLabel = document.querySelector("label[for='cfg-api-key']");
-      if (apiKeyLabel) apiKeyLabel.textContent = I18N[lang].apiKey;
+      if (apiKeyLabel) apiKeyLabel.textContent = t("ui.apiKey");
       const presetLabel = document.querySelector("label[for='cfg-preset']");
-      if (presetLabel) presetLabel.textContent = I18N[lang].preset;
+      if (presetLabel) presetLabel.textContent = t("ui.preset");
       const gmLabel = document.querySelector("label[for='cfg-gm-model']");
-      if (gmLabel) gmLabel.textContent = I18N[lang].gmModel;
+      if (gmLabel) gmLabel.textContent = t("ui.gmModel");
       const npcLabel = document.querySelector("label[for='cfg-npc-model']");
-      if (npcLabel) npcLabel.textContent = I18N[lang].npcModel;
+      if (npcLabel) npcLabel.textContent = t("ui.npcModel");
       const ollamaHint = document.querySelector("#grp-ollama-url .form-hint");
-      if (ollamaHint) ollamaHint.textContent = I18N[lang].ollamaHint;
+      if (ollamaHint) ollamaHint.textContent = t("ui.ollamaHint");
       const ramCheckbox = document.querySelector("#cfg-ignore-ram-check");
       if (ramCheckbox) {
         const ramLabelNode = ramCheckbox.parentElement.childNodes[2];
-        if (ramLabelNode) ramLabelNode.textContent = ` ${I18N[lang].ignoreRam}`;
+        if (ramLabelNode) ramLabelNode.textContent = ` ${t("ui.ignoreRam")}`;
         const ramHint = ramCheckbox.closest(".form-group").querySelector(".form-hint");
-        if (ramHint) ramHint.textContent = I18N[lang].ignoreRamHint;
+        if (ramHint) ramHint.textContent = t("ui.ignoreRamHint");
       }
-      setText("btn-test-conn", I18N[lang].test);
-      setText("btn-cfg-cancel", I18N[lang].cancel);
-      setText("btn-cfg-save", I18N[lang].save);
+      setText("btn-test-conn", t("ui.test"));
+      setText("btn-cfg-cancel", t("ui.cancel"));
+      setText("btn-cfg-save", t("ui.save"));
       renderSidebar();
       renderOpPanel();
     }
@@ -659,7 +593,7 @@
     function startGame() {
       titleScreen.classList.add("hiding");
       setTimeout(() => titleScreen.remove(), 500);
-      addMessage(t("startupMessage"), "system");
+      addMessage(t("ui.startupMessage"), "system");
     }
 
     let abortCtrl = null;
@@ -688,7 +622,7 @@
               renderSidebar();
               renderOpPanel();
             },
-            () => addMessage(t("rejectedOp"), "system"),
+            () => addMessage(t("ui.rejectedOp"), "system"),
           );
         }
 
@@ -696,9 +630,9 @@
         renderOpPanel();
       } catch (error) {
         removeLoader();
-        if (error.name === "AbortError") addMessage(t("abortedRequest"), "system");
+        if (error.name === "AbortError") addMessage(t("ui.abortedRequest"), "system");
         else {
-          addMessage(`${t("errorPrefix")}: ${error.message}`, "alert");
+          addMessage(`${t("ui.errorPrefix")}: ${error.message}`, "alert");
           console.error(error);
         }
       } finally {
@@ -782,18 +716,18 @@
 
     function validateModelForProvider(provider, model, roleLabel) {
       if (!model) {
-        throw new Error(`${roleLabel}モデルを入力してください。`);
+        throw new Error(t(roleLabel === "GM" ? "ui.gmModelRequired" : "ui.npcModelRequired"));
       }
 
       if (provider === "openrouter" && !model.includes("/")) {
         throw new Error(
-          `${roleLabel}モデル「${model}」は Ollama 向けの名前に見えます。OpenRouter では "google/gemma-4-26b-a4b-it:free" のようなIDを指定してください。`,
+          `${t("ui.openrouterModelHint", { role: roleLabel, model })}`,
         );
       }
 
       if (provider === "anthropic" && model.includes("/")) {
         throw new Error(
-          `${roleLabel}モデル「${model}」は Anthropic 向けのIDに見えません。`,
+          `${t("ui.anthropicModelHint", { role: roleLabel, model })}`,
         );
       }
     }
@@ -805,7 +739,7 @@
         saveCfg(newCfg);
         applyLanguage();
         closeModal();
-        addMessage(t("settingsSaved"), "system");
+        addMessage(t("ui.settingsSaved"), "system");
       } catch (error) {
         testResultEl.textContent = error.message;
         testResultEl.className = "err";
@@ -813,7 +747,7 @@
     }
 
     async function runConnectionTest() {
-      testResultEl.textContent = t("testing");
+      testResultEl.textContent = t("ui.testing");
       testResultEl.className = "";
       document.getElementById("btn-test-conn").disabled = true;
 
@@ -823,14 +757,14 @@
         applyLanguage();
         const result = await testConnection();
         if (result.ok) {
-          testResultEl.textContent = t("testOk", result.gmMs, result.npcMs);
+          testResultEl.textContent = t("ui.testOk", { gm: result.gmMs, npc: result.npcMs });
           testResultEl.className = "ok";
         } else {
-          testResultEl.textContent = t("testFail", result.error);
+          testResultEl.textContent = t("ui.testFail", { msg: result.error });
           testResultEl.className = "err";
         }
       } catch (error) {
-        testResultEl.textContent = `${t("errorPrefix")}: ${error.message}`;
+        testResultEl.textContent = `${t("ui.errorPrefix")}: ${error.message}`;
         testResultEl.className = "err";
       } finally {
         document.getElementById("btn-test-conn").disabled = false;
@@ -839,3 +773,4 @@
   </script>
 </body>
 </html>
+

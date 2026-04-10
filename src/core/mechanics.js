@@ -1,78 +1,6 @@
-import { GS, addLog, setMeter } from "./gameState.js";
+﻿import { GS, addLog, setMeter, syncDifficulty } from "./gameState.js";
+import { DEFAULT_DIFFICULTY, resolveDifficultyProfile } from "./difficulty.js";
 import { tickOperation } from "../ui/opPanel.js";
-
-const DEFAULT_DIFFICULTY = {
-  ENCRYPTED: {
-    hintEnabled: 1,
-    intelNoiseRate: 0.0,
-    reportLatencyMult: 0.9,
-    exposureMult: 0.8,
-    leakChancePerTurn: 0.0,
-    leakImpactMult: 0.8,
-    misinfoProb: 0.0,
-    fakeTaskInjectionRate: 0.0,
-    doubleAgentMonthly: 0.0,
-    loyaltySystemEnabled: 0,
-    failureFlagRate: 0.0,
-    instantFailPolicy: "Guard",
-    pressSensitivity: 0.85,
-    pressDecayMult: 1.05,
-    bureaucracyPressureInit: 0.0,
-    interagencyVetoBase: 0.05,
-    enemyAlertnessBase: 0.1,
-    scoreWeightsProfile: "E1",
-    chainTransferLossMult: 0.5,
-    humintReliability: 0.85,
-  },
-  DECRYPTED: {
-    hintEnabled: 0,
-    briefOnDemandPerWeek: 1,
-    intelNoiseRate: 0.02,
-    reportLatencyMult: 1.0,
-    exposureMult: 1.0,
-    leakChancePerTurn: 0.01,
-    leakImpactMult: 1.0,
-    misinfoProb: 0.0,
-    fakeTaskInjectionRate: 0.0,
-    doubleAgentMonthly: 0.0,
-    loyaltySystemEnabled: 0,
-    failureFlagRate: 0.02,
-    instantFailPolicy: "Review",
-    pressSensitivity: 1.0,
-    pressDecayMult: 1.0,
-    bureaucracyPressureInit: 0.3,
-    interagencyVetoBase: 0.12,
-    enemyAlertnessBase: 0.15,
-    scoreWeightsProfile: "D1",
-    chainTransferLossMult: 1.0,
-    humintReliability: 0.78,
-  },
-  EXPOSED: {
-    hintEnabled: 0,
-    briefOnDemandPerWeek: 0,
-    intelNoiseRate: 0.15,
-    reportLatencyMult: 1.15,
-    exposureMult: 1.25,
-    leakChancePerTurn: 0.04,
-    leakImpactMult: 1.25,
-    misinfoProb: 0.15,
-    fakeTaskInjectionRate: 0.05,
-    doubleAgentMonthly: 0.1,
-    loyaltySystemEnabled: 1,
-    loyaltyJitterPerWeek: 0.01,
-    loyaltyDecayBase: 0.02,
-    failureFlagRate: 0.06,
-    instantFailPolicy: "Strict",
-    pressSensitivity: 1.3,
-    pressDecayMult: 0.9,
-    bureaucracyPressureInit: 0.6,
-    interagencyVetoBase: 0.2,
-    enemyAlertnessBase: 0.25,
-    scoreWeightsProfile: "X1",
-    chainTransferLossMult: 1.25,
-    humintReliability: 0.65,
-  },
-};
 
 const SCORE_PROFILES = {
   E1: { mission: 0.35, legality: 0.2, exposure: 0.15, civil: 0.1, budget: 0.08, time: 0.05, procedure: 0.04, chain: 0.03 },
@@ -103,14 +31,13 @@ export async function initDifficulty(difficultyKey = GS.difficulty) {
 }
 
 export function getDifficultyProfile(difficultyKey = GS.difficulty, table = DEFAULT_DIFFICULTY) {
-  return table[difficultyKey] ?? table.DECRYPTED;
+  return resolveDifficultyProfile(difficultyKey, table).profile;
 }
 
 export function applyDifficultyProfile(difficultyKey = GS.difficulty, table = DEFAULT_DIFFICULTY) {
-  const resolvedKey = table[difficultyKey] ? difficultyKey : "DECRYPTED";
-  const profile = { ...getDifficultyProfile(resolvedKey, table) };
+  const { difficulty, profile } = resolveDifficultyProfile(difficultyKey, table);
 
-  GS.difficulty = resolvedKey;
+  syncDifficulty(difficulty);
   GS.difficultyConfig = profile;
   GS.meters.enemyAlertness = clamp01(Math.max(GS.meters.enemyAlertness ?? 0, profile.enemyAlertnessBase ?? 0));
 
