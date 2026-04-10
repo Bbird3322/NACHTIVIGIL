@@ -376,8 +376,8 @@
       <div class="title-tagline">Surveillance, intelligence, and covert operations</div>
       <div class="title-en">Simulation Control Interface</div>
       <div class="title-actions">
-        <button class="title-btn title-btn--primary" id="btn-start-game">Start</button>
-        <button class="title-btn" id="btn-title-settings">Settings</button>
+        <button class="title-btn title-btn--primary" id="btn-start-game">開始</button>
+        <button class="title-btn" id="btn-title-settings">設定</button>
       </div>
       <div class="title-hint">OpenRouter / Ollama / Anthropic support</div>
     </div>
@@ -385,71 +385,87 @@
 
   <header id="header">
     <h1>NACHTIVIGIL</h1>
-    <span class="header-meta" id="header-scenario">Scenario standby</span>
+    <span class="header-meta" id="header-scenario">シナリオ待機中</span>
     <span class="header-spacer"></span>
-    <button class="btn btn--settings" id="btn-settings">Settings</button>
+    <button class="btn btn--settings" id="btn-settings">設定</button>
   </header>
 
-  <aside id="sidebar">Loading...</aside>
+  <aside id="sidebar">読み込み中...</aside>
 
   <main id="main">
     <div id="feed"></div>
     <div id="input-area">
-      <textarea id="player-input" placeholder="Enter your order... (Ctrl+Enter to send)"></textarea>
-      <button class="btn btn--send" id="btn-send">Send</button>
+      <textarea id="player-input" placeholder="命令を入力してください... (Ctrl+Enter で送信)"></textarea>
+      <button class="btn btn--send" id="btn-send">送信</button>
     </div>
   </main>
 
   <aside id="op-panel">
-    <div class="panel-title">Operations</div>
+    <div class="panel-title">作戦</div>
   </aside>
 
-  <div id="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
+  <div id="settings-modal" role="dialog" aria-modal="true" aria-label="設定">
     <div class="modal-box">
-      <h2>Model Settings</h2>
+      <h2>モデル設定</h2>
 
       <div class="form-group">
-        <label for="cfg-provider">Provider</label>
+        <label for="cfg-provider">プロバイダ</label>
         <select id="cfg-provider">
-          <option value="ollama">Ollama (local)</option>
+          <option value="ollama">Ollama (ローカル)</option>
           <option value="openrouter">OpenRouter</option>
           <option value="anthropic">Anthropic</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="cfg-language">表示言語</label>
+        <select id="cfg-language">
+          <option value="ja">日本語</option>
+          <option value="en">English</option>
         </select>
       </div>
 
       <div class="form-group" id="grp-ollama-url">
         <label for="cfg-ollama-url">Ollama URL</label>
         <input type="text" id="cfg-ollama-url" placeholder="http://localhost:11434">
-        <div class="form-hint">If browser access fails, check your Ollama CORS settings.</div>
+        <div class="form-hint">ブラウザから接続できない場合は Ollama の CORS 設定を確認してください。</div>
       </div>
 
       <div class="form-group" id="grp-api-key" style="display:none">
-        <label for="cfg-api-key">API Key</label>
+        <label for="cfg-api-key">APIキー</label>
         <input type="password" id="cfg-api-key" placeholder="sk-...">
       </div>
 
       <div class="form-group">
-        <label for="cfg-preset">Preset</label>
+        <label for="cfg-preset">プリセット</label>
         <select id="cfg-preset"></select>
       </div>
 
       <div id="grp-custom" style="display:none">
         <div class="form-group">
-          <label for="cfg-gm-model">GM Model</label>
+          <label for="cfg-gm-model">GMモデル</label>
           <input type="text" id="cfg-gm-model" placeholder="gemma4:26b">
         </div>
         <div class="form-group">
-          <label for="cfg-npc-model">NPC Model</label>
+          <label for="cfg-npc-model">NPCモデル</label>
           <input type="text" id="cfg-npc-model" placeholder="gemma4:e4b">
         </div>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="cfg-ignore-ram-check">
+          RAM制限チェックを無効化
+        </label>
+        <div class="form-hint">アプリ側の警告や案内を弱めます。Ollama 本体のメモリ制限そのものは解除できません。</div>
       </div>
 
       <div id="test-result"></div>
 
       <div class="modal-actions">
-        <button class="btn" id="btn-test-conn">Test</button>
-        <button class="btn" id="btn-cfg-cancel">Cancel</button>
-        <button class="btn btn--send" id="btn-cfg-save">Save</button>
+        <button class="btn" id="btn-test-conn">接続テスト</button>
+        <button class="btn" id="btn-cfg-cancel">キャンセル</button>
+        <button class="btn btn--send" id="btn-cfg-save">保存</button>
       </div>
     </div>
   </div>
@@ -461,6 +477,7 @@
     import { initOpPanel, renderOpPanel, startOperation } from "./src/ui/opPanel.js";
     import { getCfg, setCfg, testConnection } from "./src/llm/client.js";
     import { sendToGM } from "./src/agents/gm.js";
+    import { initDifficulty } from "./src/core/mechanics.js";
 
     const titleScreen = document.getElementById("title-screen");
     const feedEl = document.getElementById("feed");
@@ -473,16 +490,134 @@
     const presetSel = document.getElementById("cfg-preset");
     const ollamaUrlEl = document.getElementById("cfg-ollama-url");
     const apiKeyEl = document.getElementById("cfg-api-key");
+    const languageSel = document.getElementById("cfg-language");
     const gmModelEl = document.getElementById("cfg-gm-model");
     const npcModelEl = document.getElementById("cfg-npc-model");
+    const ignoreRamCheckEl = document.getElementById("cfg-ignore-ram-check");
     const testResultEl = document.getElementById("test-result");
     const grpOllamaUrl = document.getElementById("grp-ollama-url");
     const grpApiKey = document.getElementById("grp-api-key");
     const grpCustom = document.getElementById("grp-custom");
 
+    const I18N = {
+      ja: {
+        start: "開始",
+        settings: "設定",
+        scenarioStandby: "シナリオ待機中",
+        loading: "読み込み中...",
+        inputPlaceholder: "命令を入力してください... (Ctrl+Enter で送信)",
+        send: "送信",
+        operations: "作戦",
+        modalTitle: "モデル設定",
+        provider: "プロバイダ",
+        language: "表示言語",
+        apiKey: "APIキー",
+        preset: "プリセット",
+        gmModel: "GMモデル",
+        npcModel: "NPCモデル",
+        ignoreRam: "RAM制限チェックを無効化",
+        ignoreRamHint: "アプリ側の警告や案内を弱めます。Ollama 本体のメモリ制限そのものは解除できません。",
+        ollamaHint: "ブラウザから接続できない場合は Ollama の CORS 設定を確認してください。",
+        test: "接続テスト",
+        cancel: "キャンセル",
+        save: "保存",
+        startupMessage: "**NACHTIVIGIL** 起動完了。設定画面でモデルを確認してから、最初の命令を入力してください。",
+        rejectedOp: "作戦案を却下しました。",
+        abortedRequest: "リクエストを中断しました。",
+        errorPrefix: "エラー",
+        settingsSaved: "設定を保存しました。",
+        testing: "接続テスト中...",
+        testOk: (gm, npc) => `接続成功: GM ${gm}ms / NPC ${npc}ms`,
+        testFail: (msg) => `接続失敗: ${msg}`,
+      },
+      en: {
+        start: "Start",
+        settings: "Settings",
+        scenarioStandby: "Scenario standby",
+        loading: "Loading...",
+        inputPlaceholder: "Enter your order... (Ctrl+Enter to send)",
+        send: "Send",
+        operations: "Operations",
+        modalTitle: "Model Settings",
+        provider: "Provider",
+        language: "Language",
+        apiKey: "API Key",
+        preset: "Preset",
+        gmModel: "GM Model",
+        npcModel: "NPC Model",
+        ignoreRam: "Disable RAM limit check",
+        ignoreRamHint: "This only disables app-side warnings. It cannot bypass Ollama's real memory requirements.",
+        ollamaHint: "If browser access fails, check your Ollama CORS settings.",
+        test: "Test Connection",
+        cancel: "Cancel",
+        save: "Save",
+        startupMessage: "**NACHTIVIGIL** online. Check your model settings, then enter your first order.",
+        rejectedOp: "Operation proposal rejected.",
+        abortedRequest: "Request aborted.",
+        errorPrefix: "Error",
+        settingsSaved: "Settings saved.",
+        testing: "Testing...",
+        testOk: (gm, npc) => `Connected: GM ${gm}ms / NPC ${npc}ms`,
+        testFail: (msg) => `Failed: ${msg}`,
+      },
+    };
+
+    const t = (key, ...args) => {
+      const lang = getCfg().language === "en" ? "en" : "ja";
+      const value = I18N[lang][key];
+      return typeof value === "function" ? value(...args) : value;
+    };
+
+    function applyLanguage() {
+      const lang = getCfg().language === "en" ? "en" : "ja";
+      const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      };
+      document.documentElement.lang = lang;
+      setText("btn-start-game", I18N[lang].start);
+      setText("btn-title-settings", I18N[lang].settings);
+      setText("header-scenario", I18N[lang].scenarioStandby);
+      setText("btn-settings", I18N[lang].settings);
+      inputEl.placeholder = I18N[lang].inputPlaceholder;
+      sendBtn.textContent = I18N[lang].send;
+      const panelTitle = opPanelEl.querySelector(".panel-title");
+      if (panelTitle) panelTitle.textContent = I18N[lang].operations;
+      const modalTitle = modal.querySelector("h2");
+      if (modalTitle) modalTitle.textContent = I18N[lang].modalTitle;
+      const providerLabel = document.querySelector("label[for='cfg-provider']");
+      if (providerLabel) providerLabel.textContent = I18N[lang].provider;
+      const languageLabel = document.querySelector("label[for='cfg-language']");
+      if (languageLabel) languageLabel.textContent = I18N[lang].language;
+      const apiKeyLabel = document.querySelector("label[for='cfg-api-key']");
+      if (apiKeyLabel) apiKeyLabel.textContent = I18N[lang].apiKey;
+      const presetLabel = document.querySelector("label[for='cfg-preset']");
+      if (presetLabel) presetLabel.textContent = I18N[lang].preset;
+      const gmLabel = document.querySelector("label[for='cfg-gm-model']");
+      if (gmLabel) gmLabel.textContent = I18N[lang].gmModel;
+      const npcLabel = document.querySelector("label[for='cfg-npc-model']");
+      if (npcLabel) npcLabel.textContent = I18N[lang].npcModel;
+      const ollamaHint = document.querySelector("#grp-ollama-url .form-hint");
+      if (ollamaHint) ollamaHint.textContent = I18N[lang].ollamaHint;
+      const ramCheckbox = document.querySelector("#cfg-ignore-ram-check");
+      if (ramCheckbox) {
+        const ramLabelNode = ramCheckbox.parentElement.childNodes[2];
+        if (ramLabelNode) ramLabelNode.textContent = ` ${I18N[lang].ignoreRam}`;
+        const ramHint = ramCheckbox.closest(".form-group").querySelector(".form-hint");
+        if (ramHint) ramHint.textContent = I18N[lang].ignoreRamHint;
+      }
+      setText("btn-test-conn", I18N[lang].test);
+      setText("btn-cfg-cancel", I18N[lang].cancel);
+      setText("btn-cfg-save", I18N[lang].save);
+      renderSidebar();
+      renderOpPanel();
+    }
+
     initFeed(feedEl);
     initSidebar(sidebarEl);
     initOpPanel(opPanelEl);
+    await initDifficulty();
+    applyLanguage();
 
     document.getElementById("btn-start-game").addEventListener("click", startGame);
     document.getElementById("btn-title-settings").addEventListener("click", openModal);
@@ -516,14 +651,15 @@
     });
 
     presetSel.addEventListener("change", onPresetChange);
+    languageSel.addEventListener("change", () => {
+      setCfg({ language: languageSel.value });
+      applyLanguage();
+    });
 
     function startGame() {
       titleScreen.classList.add("hiding");
       setTimeout(() => titleScreen.remove(), 500);
-      addMessage(
-        "**NACHTIVIGIL** online. Configure your models in Settings, then issue your first order.",
-        "system",
-      );
+      addMessage(t("startupMessage"), "system");
     }
 
     let abortCtrl = null;
@@ -552,7 +688,7 @@
               renderSidebar();
               renderOpPanel();
             },
-            () => addMessage("Operation proposal rejected.", "system"),
+            () => addMessage(t("rejectedOp"), "system"),
           );
         }
 
@@ -560,9 +696,9 @@
         renderOpPanel();
       } catch (error) {
         removeLoader();
-        if (error.name === "AbortError") addMessage("Request aborted.", "system");
+        if (error.name === "AbortError") addMessage(t("abortedRequest"), "system");
         else {
-          addMessage(`Error: ${error.message}`, "alert");
+          addMessage(`${t("errorPrefix")}: ${error.message}`, "alert");
           console.error(error);
         }
       } finally {
@@ -575,12 +711,14 @@
     function openModal() {
       const cfg = getCfg();
       providerSel.value = cfg.provider;
+      languageSel.value = cfg.language ?? "ja";
       ollamaUrlEl.value = cfg.ollamaUrl;
       apiKeyEl.value = cfg.apiKey;
       updateProviderUI(cfg.provider);
       updatePresetOptions(cfg.provider, cfg.preset);
       gmModelEl.value = cfg.gm.model;
       npcModelEl.value = cfg.npc.model;
+      ignoreRamCheckEl.checked = Boolean(cfg.ignoreRamCheck);
       testResultEl.textContent = "";
       testResultEl.className = "";
       modal.classList.add("open");
@@ -634,7 +772,9 @@
         provider,
         ollamaUrl: ollamaUrlEl.value.trim() || "http://localhost:11434",
         apiKey: apiKeyEl.value.trim(),
+        language: languageSel.value,
         preset: presetKey,
+        ignoreRamCheck: ignoreRamCheckEl.checked,
         gm: { model: gmModel, thinking: false },
         npc: { model: npcModel, thinking: false },
       };
@@ -642,18 +782,18 @@
 
     function validateModelForProvider(provider, model, roleLabel) {
       if (!model) {
-        throw new Error(`${roleLabel} model is required.`);
+        throw new Error(`${roleLabel}モデルを入力してください。`);
       }
 
       if (provider === "openrouter" && !model.includes("/")) {
         throw new Error(
-          `${roleLabel} model "${model}" looks like an Ollama model name. OpenRouter model IDs must look like "google/gemma-4-26b-a4b-it:free".`,
+          `${roleLabel}モデル「${model}」は Ollama 向けの名前に見えます。OpenRouter では "google/gemma-4-26b-a4b-it:free" のようなIDを指定してください。`,
         );
       }
 
       if (provider === "anthropic" && model.includes("/")) {
         throw new Error(
-          `${roleLabel} model "${model}" does not look like an Anthropic model ID.`,
+          `${roleLabel}モデル「${model}」は Anthropic 向けのIDに見えません。`,
         );
       }
     }
@@ -663,8 +803,9 @@
         const newCfg = buildConfigFromForm();
         setCfg(newCfg);
         saveCfg(newCfg);
+        applyLanguage();
         closeModal();
-        addMessage("Settings saved.", "system");
+        addMessage(t("settingsSaved"), "system");
       } catch (error) {
         testResultEl.textContent = error.message;
         testResultEl.className = "err";
@@ -672,23 +813,24 @@
     }
 
     async function runConnectionTest() {
-      testResultEl.textContent = "Testing...";
+      testResultEl.textContent = t("testing");
       testResultEl.className = "";
       document.getElementById("btn-test-conn").disabled = true;
 
       try {
         const cfg = buildConfigFromForm();
         setCfg(cfg);
+        applyLanguage();
         const result = await testConnection();
         if (result.ok) {
-          testResultEl.textContent = `OK: GM ${result.gmMs}ms / NPC ${result.npcMs}ms`;
+          testResultEl.textContent = t("testOk", result.gmMs, result.npcMs);
           testResultEl.className = "ok";
         } else {
-          testResultEl.textContent = `Failed: ${result.error}`;
+          testResultEl.textContent = t("testFail", result.error);
           testResultEl.className = "err";
         }
       } catch (error) {
-        testResultEl.textContent = `Error: ${error.message}`;
+        testResultEl.textContent = `${t("errorPrefix")}: ${error.message}`;
         testResultEl.className = "err";
       } finally {
         document.getElementById("btn-test-conn").disabled = false;

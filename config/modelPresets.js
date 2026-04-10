@@ -1,56 +1,56 @@
 ﻿const MODEL_PRESETS = {
   ollama: {
     ultra: {
-      label: "31b / 26b",
+      label: "高負荷 31b / 26b",
       gm: { model: "gemma4:31b", thinking: false },
       npc: { model: "gemma4:26b", thinking: false },
     },
     high: {
-      label: "26b / e4b",
+      label: "標準 26b / e4b",
       gm: { model: "gemma4:26b", thinking: false },
       npc: { model: "gemma4:e4b", thinking: false },
     },
     mid: {
-      label: "e4b / e4b",
+      label: "軽量 e4b / e4b",
       gm: { model: "gemma4:e4b", thinking: false },
       npc: { model: "gemma4:e4b", thinking: false },
     },
     custom: {
-      label: "Custom",
+      label: "カスタム",
       gm: { model: "", thinking: false },
       npc: { model: "", thinking: false },
     },
   },
   openrouter: {
     free: {
-      label: "26b Free / 26b Free",
+      label: "無料 26b / 26b",
       gm: { model: "google/gemma-4-26b-a4b-it:free", thinking: false },
       npc: { model: "google/gemma-4-26b-a4b-it:free", thinking: false },
     },
     paid_light: {
-      label: "26b Paid / e4b-style light",
+      label: "有料 26b / 軽量",
       gm: { model: "google/gemma-4-26b-a4b-it", thinking: false },
       npc: { model: "google/gemma-4-26b-a4b-it:free", thinking: false },
     },
     paid_full: {
-      label: "26b Paid / 26b Paid",
+      label: "有料 26b / 26b",
       gm: { model: "google/gemma-4-26b-a4b-it", thinking: false },
       npc: { model: "google/gemma-4-26b-a4b-it", thinking: false },
     },
     custom: {
-      label: "Custom",
+      label: "カスタム",
       gm: { model: "", thinking: false },
       npc: { model: "", thinking: false },
     },
   },
   anthropic: {
     default: {
-      label: "Claude",
+      label: "Claude 標準",
       gm: { model: "claude-sonnet-4-6", thinking: false },
       npc: { model: "claude-haiku-4-5-20251001", thinking: false },
     },
     custom: {
-      label: "Custom",
+      label: "カスタム",
       gm: { model: "", thinking: false },
       npc: { model: "", thinking: false },
     },
@@ -61,7 +61,9 @@ const DEFAULT_CFG = {
   provider: "ollama",
   ollamaUrl: "http://localhost:11434",
   apiKey: "",
+  language: "ja",
   preset: "high",
+  ignoreRamCheck: false,
   gm: { model: "gemma4:26b", thinking: false },
   npc: { model: "gemma4:e4b", thinking: false },
 };
@@ -100,7 +102,9 @@ export function normalizeCfg(cfg) {
     ...structuredClone(DEFAULT_CFG),
     ...cfg,
     provider,
+    language: cfg.language === "en" ? "en" : "ja",
     preset: requestedPreset,
+    ignoreRamCheck: Boolean(cfg.ignoreRamCheck),
     gm: { ...structuredClone(DEFAULT_CFG.gm), ...cfg.gm },
     npc: { ...structuredClone(DEFAULT_CFG.npc), ...cfg.npc },
   };

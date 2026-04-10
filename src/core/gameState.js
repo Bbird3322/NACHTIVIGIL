@@ -55,6 +55,7 @@
   scenarioVars: {},
   violations: [],
   difficulty: "DECRYPTED",
+  difficultyConfig: null,
 });
 
 const createInitialKnowledge = () => ({
