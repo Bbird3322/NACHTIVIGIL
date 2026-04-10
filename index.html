@@ -620,20 +620,55 @@
       }
     }
 
-    function saveSettings() {
-      const newCfg = {
-        provider: providerSel.value,
+    function buildConfigFromForm() {
+      const provider = providerSel.value;
+      const presetKey = presetSel.value;
+      const preset = presetKey !== "custom" ? resolvePreset(provider, presetKey) : null;
+      const gmModel = preset?.gm.model ?? gmModelEl.value.trim();
+      const npcModel = preset?.npc.model ?? npcModelEl.value.trim();
+
+      validateModelForProvider(provider, gmModel, "GM");
+      validateModelForProvider(provider, npcModel, "NPC");
+
+      return {
+        provider,
         ollamaUrl: ollamaUrlEl.value.trim() || "http://localhost:11434",
         apiKey: apiKeyEl.value.trim(),
-        preset: presetSel.value,
-        gm: { model: gmModelEl.value.trim(), thinking: false },
-        npc: { model: npcModelEl.value.trim(), thinking: false },
+        preset: presetKey,
+        gm: { model: gmModel, thinking: false },
+        npc: { model: npcModel, thinking: false },
       };
+    }
 
-      setCfg(newCfg);
-      saveCfg(newCfg);
-      closeModal();
-      addMessage("Settings saved.", "system");
+    function validateModelForProvider(provider, model, roleLabel) {
+      if (!model) {
+        throw new Error(`${roleLabel} model is required.`);
+      }
+
+      if (provider === "openrouter" && !model.includes("/")) {
+        throw new Error(
+          `${roleLabel} model "${model}" looks like an Ollama model name. OpenRouter model IDs must look like "google/gemma-4-26b-a4b-it:free".`,
+        );
+      }
+
+      if (provider === "anthropic" && model.includes("/")) {
+        throw new Error(
+          `${roleLabel} model "${model}" does not look like an Anthropic model ID.`,
+        );
+      }
+    }
+
+    function saveSettings() {
+      try {
+        const newCfg = buildConfigFromForm();
+        setCfg(newCfg);
+        saveCfg(newCfg);
+        closeModal();
+        addMessage("Settings saved.", "system");
+      } catch (error) {
+        testResultEl.textContent = error.message;
+        testResultEl.className = "err";
+      }
     }
 
     async function runConnectionTest() {
@@ -641,15 +676,9 @@
       testResultEl.className = "";
       document.getElementById("btn-test-conn").disabled = true;
 
-      setCfg({
-        provider: providerSel.value,
-        ollamaUrl: ollamaUrlEl.value.trim() || "http://localhost:11434",
-        apiKey: apiKeyEl.value.trim(),
-        gm: { model: gmModelEl.value.trim(), thinking: false },
-        npc: { model: npcModelEl.value.trim(), thinking: false },
-      });
-
       try {
+        const cfg = buildConfigFromForm();
+        setCfg(cfg);
         const result = await testConnection();
         if (result.ok) {
           testResultEl.textContent = `OK: GM ${result.gmMs}ms / NPC ${result.npcMs}ms`;
