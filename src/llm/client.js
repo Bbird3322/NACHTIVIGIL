@@ -1,9 +1,9 @@
-﻿import { loadCfg } from "../../config/modelPresets.js";
+﻿import { loadCfg, normalizeCfg } from "../../config/modelPresets.js";
 
 let CFG = loadCfg();
 
 export function setCfg(newCfg) {
-  CFG = { ...CFG, ...newCfg };
+  CFG = normalizeCfg({ ...CFG, ...newCfg });
 }
 
 export function getCfg() {
@@ -50,12 +50,22 @@ async function callModel(modelCfg, systemPrompt, messages, opts = {}) {
     throw new Error("Model is not configured. Open settings and choose a model.");
   }
 
+  if (CFG.provider === "openrouter" && !CFG.apiKey) {
+    throw new Error("OpenRouter requires an API key.");
+  }
+
+  if (CFG.provider === "ollama") {
+    await assertOllamaModelAvailable(modelCfg.model, signal);
+  }
+
   for (let attempt = 0; attempt < retries; attempt += 1) {
     try {
-      const res = await fetch(getEndpoint(), {
+      const endpoint = getEndpoint();
+      const body = buildBody(modelCfg, systemPrompt, messages);
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: buildHeaders(),
-        body: JSON.stringify(buildBody(modelCfg, systemPrompt, messages)),
+        body: JSON.stringify(body),
         signal,
       });
 
@@ -65,7 +75,7 @@ async function callModel(modelCfg, systemPrompt, messages, opts = {}) {
           await sleep(Math.min(2000 * 2 ** attempt, 10000));
           continue;
         }
-        throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
+        throw buildProviderError(res.status, text, modelCfg.model);
       }
 
       const data = await res.json();
@@ -159,6 +169,47 @@ function extractText(data) {
 
   const choice = data.choices?.[0];
   return choice?.message?.content ?? choice?.text ?? "";
+}
+
+function buildProviderError(status, text, model) {
+  if (CFG.provider === "openrouter") {
+    if (status === 400 && text.includes("valid model ID")) {
+      return new Error(`OpenRouter rejected model "${model}". Choose an OpenRouter model ID like "google/gemma-4-26b-a4b-it:free".`);
+    }
+    if (status === 401 || status === 403) {
+      return new Error("OpenRouter authentication failed. Check your API key.");
+    }
+  }
+
+  if (CFG.provider === "ollama") {
+    if (status === 404 && text.toLowerCase().includes("model")) {
+      return new Error(`Ollama model "${model}" is not installed locally. Run "ollama pull ${model}".`);
+    }
+  }
+
+  return new Error(`HTTP ${status}: ${text.slice(0, 200)}`);
+}
+
+async function assertOllamaModelAvailable(model, signal) {
+  const tagsUrl = `${CFG.ollamaUrl}/api/tags`;
+  let response;
+
+  try {
+    response = await fetch(tagsUrl, { signal });
+  } catch {
+    throw new Error(`Could not reach Ollama at ${CFG.ollamaUrl}. Make sure "ollama serve" is running and browser access is allowed.`);
+  }
+
+  if (!response.ok) {
+    throw new Error(`Ollama is reachable but /api/tags returned HTTP ${response.status}.`);
+  }
+
+  const data = await response.json().catch(() => ({ models: [] }));
+  const names = (data.models ?? []).map((entry) => entry.name);
+  if (!names.includes(model)) {
+    const installed = names.length ? `Installed models: ${names.join(", ")}` : "No Ollama models are installed yet.";
+    throw new Error(`Ollama model "${model}" is not available locally. ${installed} Run "ollama pull ${model}".`);
+  }
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

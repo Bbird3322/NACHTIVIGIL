@@ -1,17 +1,17 @@
 ﻿const MODEL_PRESETS = {
   ollama: {
     ultra: {
-      label: "Ultra (RAM 24GB)",
+      label: "31b / 26b",
       gm: { model: "gemma4:31b", thinking: false },
       npc: { model: "gemma4:26b", thinking: false },
     },
     high: {
-      label: "High (RAM 16GB)",
-      gm: { model: "gemma4", thinking: false },
+      label: "26b / e4b",
+      gm: { model: "gemma4:26b", thinking: false },
       npc: { model: "gemma4:e4b", thinking: false },
     },
     mid: {
-      label: "Mid (RAM 8GB)",
+      label: "e4b / e4b",
       gm: { model: "gemma4:e4b", thinking: false },
       npc: { model: "gemma4:e4b", thinking: false },
     },
@@ -23,17 +23,17 @@
   },
   openrouter: {
     free: {
-      label: "Free",
-      gm: { model: "google/gemma-3-27b-it:free", thinking: false },
-      npc: { model: "google/gemma-3-12b-it:free", thinking: false },
+      label: "26b Free / 26b Free",
+      gm: { model: "google/gemma-4-26b-a4b-it:free", thinking: false },
+      npc: { model: "google/gemma-4-26b-a4b-it:free", thinking: false },
     },
     paid_light: {
-      label: "Paid Light",
+      label: "26b Paid / e4b-style light",
       gm: { model: "google/gemma-4-26b-a4b-it", thinking: false },
-      npc: { model: "google/gemma-3-12b-it:free", thinking: false },
+      npc: { model: "google/gemma-4-26b-a4b-it:free", thinking: false },
     },
     paid_full: {
-      label: "Paid Full",
+      label: "26b Paid / 26b Paid",
       gm: { model: "google/gemma-4-26b-a4b-it", thinking: false },
       npc: { model: "google/gemma-4-26b-a4b-it", thinking: false },
     },
@@ -62,7 +62,7 @@ const DEFAULT_CFG = {
   ollamaUrl: "http://localhost:11434",
   apiKey: "",
   preset: "high",
-  gm: { model: "gemma4", thinking: false },
+  gm: { model: "gemma4:26b", thinking: false },
   npc: { model: "gemma4:e4b", thinking: false },
 };
 
@@ -90,7 +90,7 @@ export function resolvePreset(provider, preset) {
   return MODEL_PRESETS[provider]?.[preset] ?? null;
 }
 
-function normalizeCfg(cfg) {
+export function normalizeCfg(cfg) {
   const provider = cfg.provider in MODEL_PRESETS ? cfg.provider : DEFAULT_CFG.provider;
   const availablePresets = MODEL_PRESETS[provider];
   const requestedPreset = cfg.preset in availablePresets ? cfg.preset : defaultPresetForProvider(provider);
