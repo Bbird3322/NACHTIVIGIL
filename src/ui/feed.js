@@ -1,96 +1,72 @@
-// src/ui/feed.js
-// メッセージフィード — ゲームの主要表示領域
- 
-/** @type {HTMLElement|null} */
-let _feedEl = null;
- 
+﻿let feedEl = null;
+
 export function initFeed(containerEl) {
-  _feedEl = containerEl;
+  feedEl = containerEl;
 }
- 
-/**
- * フィードにメッセージを追加する
- * @param {string} html - HTMLまたはテキスト
- * @param {"gm"|"player"|"system"|"intel"|"alert"|"op"} [type="gm"]
- */
+
 export function addMessage(html, type = "gm") {
-  if (!_feedEl) return;
- 
+  if (!feedEl) return;
+
   const el = document.createElement("div");
   el.className = `feed-msg feed-msg--${type}`;
   el.innerHTML = escapeAndFormat(html);
-  _feedEl.appendChild(el);
-  _feedEl.scrollTop = _feedEl.scrollHeight;
+  feedEl.appendChild(el);
+  feedEl.scrollTop = feedEl.scrollHeight;
 }
- 
-/**
- * 作戦提案カードをフィードに表示する（インラインパネル）
- * @param {object} op - OPERATIONタグのオブジェクト
- * @param {function} onAccept - 承認コールバック
- * @param {function} onReject - 却下コールバック
- */
+
 export function addOperationCard(op, onAccept, onReject) {
-  if (!_feedEl) return;
- 
+  if (!feedEl) return;
+
   const el = document.createElement("div");
   el.className = "feed-msg feed-msg--op op-card";
   el.innerHTML = `
-    <div class="op-card__header">📋 作戦提案: ${esc(op.name)}</div>
+    <div class="op-card__header">Operation Proposal: ${esc(op.name)}</div>
     <div class="op-card__body">
-      <div class="op-card__row"><span class="op-card__label">概要</span><span>${esc(op.description)}</span></div>
-      <div class="op-card__row"><span class="op-card__label">期間</span><span>${op.days}日間</span></div>
-      <div class="op-card__row"><span class="op-card__label">要員</span><span>${op.personnel}名</span></div>
-      <div class="op-card__row"><span class="op-card__label">費用</span><span>${Number(op.cost).toLocaleString()}円</span></div>
-      <div class="op-card__row op-card__risk"><span class="op-card__label">リスク</span><span>${esc(op.risk)}</span></div>
-      ${op.method ? `<div class="op-card__row"><span class="op-card__label">方式</span><span class="op-card__method op-card__method--${op.method}">${op.method === "legal" ? "合法" : "違法"}</span></div>` : ""}
+      <div class="op-card__row"><span class="op-card__label">Desc</span><span>${esc(op.description ?? "")}</span></div>
+      <div class="op-card__row"><span class="op-card__label">Days</span><span>${Number(op.days ?? 0)} days</span></div>
+      <div class="op-card__row"><span class="op-card__label">Staff</span><span>${Number(op.personnel ?? 0)}</span></div>
+      <div class="op-card__row"><span class="op-card__label">Cost</span><span>${Number(op.cost ?? 0).toLocaleString()}</span></div>
+      <div class="op-card__row op-card__risk"><span class="op-card__label">Risk</span><span>${esc(op.risk ?? "Unknown")}</span></div>
+      ${op.method ? `<div class="op-card__row"><span class="op-card__label">Method</span><span class="op-card__method op-card__method--${esc(op.method)}">${esc(op.method)}</span></div>` : ""}
     </div>
     <div class="op-card__actions">
-      <button class="btn btn--accept" data-action="accept">承認</button>
-      <button class="btn btn--reject" data-action="reject">却下</button>
+      <button class="btn btn--accept" data-action="accept">Accept</button>
+      <button class="btn btn--reject" data-action="reject">Reject</button>
     </div>
   `;
- 
-  el.querySelector("[data-action=accept]").addEventListener("click", () => {
-    el.querySelectorAll("button").forEach(b => b.disabled = true);
-    el.querySelector("[data-action=accept]").textContent = "✓ 承認済み";
+
+  el.querySelector("[data-action=accept]")?.addEventListener("click", () => {
+    el.querySelectorAll("button").forEach((button) => {
+      button.disabled = true;
+    });
     onAccept(op);
   });
-  el.querySelector("[data-action=reject]").addEventListener("click", () => {
-    el.querySelectorAll("button").forEach(b => b.disabled = true);
-    el.querySelector("[data-action=reject]").textContent = "✗ 却下済み";
+
+  el.querySelector("[data-action=reject]")?.addEventListener("click", () => {
+    el.querySelectorAll("button").forEach((button) => {
+      button.disabled = true;
+    });
     onReject(op);
   });
- 
-  _feedEl.appendChild(el);
-  _feedEl.scrollTop = _feedEl.scrollHeight;
+
+  feedEl.appendChild(el);
+  feedEl.scrollTop = feedEl.scrollHeight;
 }
- 
-/**
- * ローディングインジケータを追加し、削除用関数を返す
- * @returns {function} removeLoader
- */
+
 export function addLoader() {
-  if (!_feedEl) return () => {};
+  if (!feedEl) return () => {};
   const el = document.createElement("div");
   el.className = "feed-msg feed-msg--loading";
-  el.innerHTML = `<span class="loader-dot"></span><span class="loader-dot"></span><span class="loader-dot"></span>`;
-  _feedEl.appendChild(el);
-  _feedEl.scrollTop = _feedEl.scrollHeight;
+  el.innerHTML = "<span class=\"loader-dot\"></span><span class=\"loader-dot\"></span><span class=\"loader-dot\"></span>";
+  feedEl.appendChild(el);
+  feedEl.scrollTop = feedEl.scrollHeight;
   return () => el.remove();
 }
- 
-/**
- * フィードをクリアする
- */
+
 export function clearFeed() {
-  if (_feedEl) _feedEl.innerHTML = "";
+  if (feedEl) feedEl.innerHTML = "";
 }
- 
-// ─────────────────────────────────────────────
-// 内部ユーティリティ
-// ─────────────────────────────────────────────
- 
-/** HTMLエスケープ */
+
 function esc(str) {
   return String(str ?? "")
     .replace(/&/g, "&amp;")
@@ -98,12 +74,7 @@ function esc(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
- 
-/**
- * GMテキストを簡易フォーマット（改行→<br>、**bold**対応）
- * @param {string} text
- * @returns {string}
- */
+
 function escapeAndFormat(text) {
   return esc(text)
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")

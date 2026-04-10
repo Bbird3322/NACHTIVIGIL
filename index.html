@@ -1,35 +1,32 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NACHTIVIGIL — 公安警察シミュレーション</title>
+  <title>NACHTIVIGIL</title>
   <style>
-    /* ─────────────────────────────────────
-       CSS変数ベースのダークテーマ
-    ───────────────────────────────────── */
     :root {
-      --bg:         #0d1117;
-      --bg-panel:   #161b22;
-      --bg-input:   #1c2128;
-      --border:     #30363d;
-      --text:       #c9d1d9;
+      --bg: #0d1117;
+      --bg-panel: #161b22;
+      --bg-input: #1c2128;
+      --border: #30363d;
+      --text: #c9d1d9;
       --text-muted: #8b949e;
-      --text-dim:   #484f58;
-      --accent:     #58a6ff;
+      --text-dim: #484f58;
+      --accent: #58a6ff;
       --accent-dim: #1f6feb;
-      --good:       #3fb950;
-      --warn:       #d29922;
-      --danger:     #f85149;
-      --legal:      #3fb950;
-      --illegal:    #f85149;
-      --sidebar-w:  280px;
+      --good: #3fb950;
+      --warn: #d29922;
+      --danger: #f85149;
+      --legal: #3fb950;
+      --illegal: #f85149;
+      --sidebar-w: 280px;
       --op-panel-w: 240px;
-      --input-h:    120px;
+      --input-h: 120px;
     }
- 
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
     body {
       background: var(--bg);
       color: var(--text);
@@ -41,11 +38,10 @@
       grid-template-columns: var(--sidebar-w) 1fr var(--op-panel-w);
       grid-template-areas:
         "header header header"
-        "sidebar feed   op";
+        "sidebar feed op";
       overflow: hidden;
     }
- 
-    /* ── ヘッダー ── */
+
     #header {
       grid-area: header;
       background: var(--bg-panel);
@@ -55,16 +51,17 @@
       align-items: center;
       gap: 12px;
     }
+
     #header h1 {
       font-size: 15px;
       font-weight: 700;
       letter-spacing: 0.12em;
       color: var(--accent);
     }
+
     #header .header-meta { color: var(--text-muted); font-size: 12px; }
     .header-spacer { flex: 1; }
- 
-    /* ── サイドバー ── */
+
     #sidebar {
       grid-area: sidebar;
       background: var(--bg-panel);
@@ -72,14 +69,14 @@
       overflow-y: auto;
       padding: 12px;
     }
- 
-    /* ── メインフィード ── */
+
     #main {
       grid-area: feed;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
+
     #feed {
       flex: 1;
       overflow-y: auto;
@@ -88,12 +85,14 @@
       flex-direction: column;
       gap: 12px;
     }
+
     #input-area {
       border-top: 1px solid var(--border);
       padding: 12px;
       display: flex;
       gap: 8px;
     }
+
     #player-input {
       flex: 1;
       background: var(--bg-input);
@@ -106,10 +105,10 @@
       font-size: 14px;
       min-height: var(--input-h);
     }
+
     #player-input:focus { outline: none; border-color: var(--accent-dim); }
     #player-input::placeholder { color: var(--text-dim); }
- 
-    /* ── 作戦パネル ── */
+
     #op-panel {
       grid-area: op;
       background: var(--bg-panel);
@@ -117,8 +116,7 @@
       overflow-y: auto;
       padding: 12px;
     }
- 
-    /* ── ボタン ── */
+
     .btn {
       background: var(--bg-input);
       color: var(--text);
@@ -130,8 +128,10 @@
       font-family: inherit;
       transition: background 0.15s;
     }
+
     .btn:hover { background: var(--border); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
     .btn--send {
       background: var(--accent-dim);
       border-color: var(--accent-dim);
@@ -139,113 +139,113 @@
       align-self: flex-end;
       padding: 8px 18px;
     }
+
     .btn--send:hover { background: var(--accent); }
     .btn--accept { border-color: var(--good); color: var(--good); }
-    .btn--accept:hover { background: rgba(63,185,80,.12); }
+    .btn--accept:hover { background: rgba(63, 185, 80, 0.12); }
     .btn--reject { border-color: var(--danger); color: var(--danger); }
-    .btn--reject:hover { background: rgba(248,81,73,.12); }
-    .btn--abort  { border-color: var(--warn); color: var(--warn); margin-top: 8px; width: 100%; }
-    .btn--abort:hover { background: rgba(210,153,34,.12); }
-    .btn--settings {
-      font-size: 12px;
-      padding: 4px 10px;
-    }
- 
-    /* ── フィードメッセージ ── */
+    .btn--reject:hover { background: rgba(248, 81, 73, 0.12); }
+    .btn--abort { border-color: var(--warn); color: var(--warn); margin-top: 8px; width: 100%; }
+    .btn--abort:hover { background: rgba(210, 153, 34, 0.12); }
+    .btn--settings { font-size: 12px; padding: 4px 10px; }
+
     .feed-msg {
       border-radius: 6px;
       padding: 10px 14px;
       line-height: 1.6;
       border-left: 3px solid transparent;
     }
-    .feed-msg--gm     { background: var(--bg-panel); border-color: var(--accent-dim); }
+
+    .feed-msg--gm { background: var(--bg-panel); border-color: var(--accent-dim); }
     .feed-msg--player { background: var(--bg-input); border-color: var(--text-dim); text-align: right; }
     .feed-msg--system { background: transparent; border-color: var(--good); color: var(--text-muted); font-size: 12px; }
-    .feed-msg--intel  { background: var(--bg-panel); border-color: var(--warn); }
-    .feed-msg--alert  { background: rgba(248,81,73,.08); border-color: var(--danger); }
-    .feed-msg--op     { background: var(--bg-panel); border-color: var(--accent); }
+    .feed-msg--intel { background: var(--bg-panel); border-color: var(--warn); }
+    .feed-msg--alert { background: rgba(248, 81, 73, 0.08); border-color: var(--danger); }
+    .feed-msg--op { background: var(--bg-panel); border-color: var(--accent); }
     .feed-msg--loading {
-      display: flex; gap: 6px; align-items: center;
-      background: var(--bg-panel); border-color: var(--text-dim);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      background: var(--bg-panel);
+      border-color: var(--text-dim);
     }
- 
-    /* ローディングドット */
+
     .loader-dot {
-      width: 8px; height: 8px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--text-muted);
       animation: blink 1.2s infinite both;
     }
+
     .loader-dot:nth-child(2) { animation-delay: 0.2s; }
     .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+
     @keyframes blink {
-      0%,80%,100% { opacity: 0.2; }
-      40%         { opacity: 1; }
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
     }
- 
-    /* ── 作戦カード（フィード内インライン） ── */
+
     .op-card__header { font-weight: 700; margin-bottom: 8px; color: var(--accent); }
     .op-card__body { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
     .op-card__row { display: flex; gap: 8px; }
     .op-card__label { color: var(--text-muted); min-width: 48px; }
     .op-card__risk { color: var(--warn); }
-    .op-card__method--legal   { color: var(--legal); }
+    .op-card__method--legal { color: var(--legal); }
     .op-card__method--illegal { color: var(--illegal); }
     .op-card__actions { display: flex; gap: 8px; }
- 
-    /* ── サイドバースタイル ── */
+
     .sb-section { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
     .sb-section:last-child { border-bottom: none; }
-    .sb-title  { font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 2px; }
-    .sb-sub    { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+    .sb-title { font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 2px; }
+    .sb-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
     .sb-mission { color: var(--text); font-size: 12px; }
-    .sb-label  { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .sb-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
     .sb-label--danger { color: var(--danger); }
-    .sb-row    { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+    .sb-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
     .sb-val--warn { color: var(--warn); }
     .sb-val--zero { color: var(--danger); }
     .sb-violation { font-size: 11px; color: var(--danger); margin-bottom: 2px; }
- 
+
     .sb-meter { margin-bottom: 8px; }
     .sb-meter__header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
-    .sb-meter__val--good   { color: var(--good); }
-    .sb-meter__val--warn   { color: var(--warn); }
+    .sb-meter__val--good { color: var(--good); }
+    .sb-meter__val--warn { color: var(--warn); }
     .sb-meter__val--danger { color: var(--danger); }
-    .sb-meter__bar  { background: var(--bg); height: 4px; border-radius: 2px; overflow: hidden; }
+    .sb-meter__bar { background: var(--bg); height: 4px; border-radius: 2px; overflow: hidden; }
     .sb-meter__fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
-    .sb-meter__fill--good   { background: var(--good); }
-    .sb-meter__fill--warn   { background: var(--warn); }
+    .sb-meter__fill--good { background: var(--good); }
+    .sb-meter__fill--warn { background: var(--warn); }
     .sb-meter__fill--danger { background: var(--danger); }
- 
-    /* ── 作戦パネル（右サイドバー） ── */
+
     #op-panel .op-panel__empty { color: var(--text-dim); font-size: 12px; text-align: center; padding: 20px 0; }
     #op-panel > .panel-title { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
- 
-    .op-panel { }
     .op-panel--complete { opacity: 0.7; }
-    .op-panel__name   { font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+    .op-panel__name { font-weight: 700; color: var(--accent); margin-bottom: 6px; }
     .op-panel__status { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
     .op-panel__status--done { color: var(--good); }
     .op-panel__progress-bar { background: var(--bg); height: 4px; border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
     .op-panel__progress-fill { height: 100%; background: var(--accent-dim); border-radius: 2px; transition: width 0.3s; }
     .op-panel__meta { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
-    .op-panel__row  { display: flex; gap: 8px; }
+    .op-panel__row { display: flex; gap: 8px; }
     .op-panel__label { color: var(--text-muted); min-width: 54px; }
-    .op-panel__risk  { color: var(--warn); }
-    .op-panel__method--legal   { color: var(--legal); }
+    .op-panel__risk { color: var(--warn); }
+    .op-panel__method--legal { color: var(--legal); }
     .op-panel__method--illegal { color: var(--illegal); }
     .op-panel__invalid { color: var(--danger); }
- 
-    /* ── 設定モーダル ── */
+
     #settings-modal {
       display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7);
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
       z-index: 300;
       align-items: center;
       justify-content: center;
     }
+
     #settings-modal.open { display: flex; }
+
     .modal-box {
       background: var(--bg-panel);
       border: 1px solid var(--border);
@@ -257,9 +257,11 @@
       max-height: 90vh;
       overflow-y: auto;
     }
+
     .modal-box h2 { font-size: 15px; color: var(--accent); margin-bottom: 16px; }
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+
     .form-group select,
     .form-group input[type=text],
     .form-group input[type=password] {
@@ -272,22 +274,15 @@
       font-size: 13px;
       font-family: inherit;
     }
+
     .form-group select:focus,
     .form-group input:focus { outline: none; border-color: var(--accent-dim); }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
     .form-hint { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
     #test-result { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
-    #test-result.ok  { color: var(--good); }
+    #test-result.ok { color: var(--good); }
     #test-result.err { color: var(--danger); }
- 
-    /* ── スクロールバー ── */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-  
-    /* ────────────────────────────────────────
-       タイトル画面
-    ──────────────────────────────────────── */
+
     #title-screen {
       position: fixed;
       inset: 0;
@@ -296,79 +291,35 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      animation: title-fadein 1s ease both;
       overflow: hidden;
     }
+
     #title-screen.hiding {
-      animation: title-fadeout 0.6s ease forwards;
+      opacity: 0;
       pointer-events: none;
+      transition: opacity 0.5s ease;
     }
-    @keyframes title-fadein {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-    @keyframes title-fadeout {
-      from { opacity: 1; }
-      to   { opacity: 0; }
-    }
- 
-    /* グリッド背景 */
-    #title-screen::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(88,166,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(88,166,255,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
- 
-    /* スキャンライン */
-    #title-screen::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        to bottom,
-        transparent,
-        transparent 3px,
-        rgba(0,0,0,0.08) 3px,
-        rgba(0,0,0,0.08) 4px
-      );
-      pointer-events: none;
-    }
- 
-    .title-corner {
-      position: absolute;
-      font-size: 9px;
-      color: var(--text-dim);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-family: "Courier New", monospace;
-      opacity: 0.6;
-    }
-    .title-corner--tl { top: 20px; left: 24px; }
-    .title-corner--tr { top: 20px; right: 24px; text-align: right; }
-    .title-corner--bl { bottom: 20px; left: 24px; }
-    .title-corner--br { bottom: 20px; right: 24px; text-align: right; }
- 
+
     .title-content {
-      position: relative;
       text-align: center;
       max-width: 700px;
       padding: 48px 40px;
-      z-index: 1;
     }
- 
+
+    .title-eyebrow,
+    .title-en,
+    .title-hint {
+      color: var(--text-dim);
+      font-family: "Courier New", monospace;
+    }
+
     .title-eyebrow {
       font-size: 10px;
-      color: var(--text-dim);
       letter-spacing: 0.3em;
-      text-transform: uppercase;
-      font-family: "Courier New", monospace;
       margin-bottom: 20px;
+      text-transform: uppercase;
     }
- 
+
     .title-logo {
       font-size: clamp(40px, 7vw, 80px);
       font-weight: 900;
@@ -376,43 +327,14 @@
       color: var(--text);
       line-height: 1;
       margin-bottom: 8px;
-      animation: title-glow 4s ease-in-out infinite alternate;
     }
+
     .title-logo .title-accent { color: var(--accent); }
- 
-    @keyframes title-glow {
-      from { text-shadow: 0 0 24px rgba(88,166,255,0.25), 0 0 60px rgba(88,166,255,0.08); }
-      to   { text-shadow: 0 0 40px rgba(88,166,255,0.5),  0 0 100px rgba(88,166,255,0.18); }
-    }
- 
-    .title-rule {
-      width: 240px;
-      height: 1px;
-      background: linear-gradient(to right, transparent, var(--border), transparent);
-      margin: 22px auto;
-    }
- 
-    .title-tagline {
-      font-size: 13px;
-      color: var(--text-muted);
-      letter-spacing: 0.1em;
-      margin-bottom: 4px;
-    }
-    .title-en {
-      font-size: 10px;
-      color: var(--text-dim);
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      margin-bottom: 52px;
-    }
- 
-    .title-actions {
-      display: flex;
-      gap: 14px;
-      justify-content: center;
-      margin-bottom: 36px;
-    }
- 
+    .title-rule { width: 240px; height: 1px; background: linear-gradient(to right, transparent, var(--border), transparent); margin: 22px auto; }
+    .title-tagline { font-size: 13px; color: var(--text-muted); letter-spacing: 0.1em; margin-bottom: 4px; }
+    .title-en { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 52px; }
+    .title-actions { display: flex; gap: 14px; justify-content: center; margin-bottom: 36px; }
+
     .title-btn {
       background: transparent;
       border: 1px solid var(--border);
@@ -425,414 +347,324 @@
       letter-spacing: 0.1em;
       transition: all 0.2s ease;
     }
+
     .title-btn:hover {
-      background: rgba(88,166,255,0.07);
+      background: rgba(88, 166, 255, 0.07);
       border-color: var(--accent);
       color: var(--accent);
     }
+
     .title-btn--primary {
-      background: rgba(31,111,235,0.18);
+      background: rgba(31, 111, 235, 0.18);
       border-color: var(--accent-dim);
       color: var(--accent);
       font-weight: 700;
     }
-    .title-btn--primary:hover {
-      background: rgba(31,111,235,0.35);
-      border-color: var(--accent);
-    }
- 
-    .title-hint {
-      font-size: 11px;
-      color: var(--text-dim);
-      letter-spacing: 0.06em;
-    }
-    .title-hint kbd {
-      font-family: "Courier New", monospace;
-      font-size: 10px;
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      padding: 1px 5px;
-    }
- 
-    /* ブリップ点滅アニメーション（右上コーナー） */
-    .title-blink {
-      display: inline-block;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--good);
-      margin-right: 6px;
-      animation: blink-dot 1.4s ease-in-out infinite;
-      vertical-align: middle;
-    }
-    @keyframes blink-dot {
-      0%,100% { opacity: 1; }
-      50%      { opacity: 0.2; }
-    }
+
+    .title-btn--primary:hover { background: rgba(31, 111, 235, 0.35); }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
   </style>
 </head>
 <body>
- <!-- ────────────────────────────────────────
-     タイトル画面
-──────────────────────────────────────── -->
-<div id="title-screen">
-  <span class="title-corner title-corner--tl">NACHTIVIGIL // SYS</span>
-  <span class="title-corner title-corner--tr"><span class="title-blink"></span>STANDBY</span>
-  <span class="title-corner title-corner--bl">CLASSIFIED // INTERNAL USE ONLY</span>
-  <span class="title-corner title-corner--br">v0.1.0-alpha</span>
- 
-  <div class="title-content">
-    <div class="title-eyebrow">公安警察 諜報シミュレーション</div>
-    <div class="title-logo">NACHT<span class="title-accent">VIGIL</span></div>
-    <div class="title-rule"></div>
-    <div class="title-tagline">捜査・諜報・協力者育成シミュレーション</div>
-    <div class="title-en">Surveillance &nbsp;·&nbsp; Intelligence &nbsp;·&nbsp; Asset Development</div>
-    <div class="title-actions">
-      <button class="title-btn title-btn--primary" id="btn-start-game">ゲーム開始</button>
-      <button class="title-btn" id="btn-title-settings">⚙ 設定</button>
-    </div>
-    <div class="title-hint">
-      OpenRouter / Ollama / Anthropic API 対応 &nbsp;&nbsp;
-      <kbd>ESC</kbd> で設定を開く
-    </div>
-  </div>
-</div>
- 
-<!-- ────────────────────────────────────────
-     メインゲームUI
-──────────────────────────────────────── -->
- 
-<!-- ヘッダー -->
-<header id="header">
-  <h1>NACHTIVIGIL</h1>
-  <span class="header-meta" id="header-scenario">シナリオ未選択</span>
-  <span class="header-spacer"></span>
-  <button class="btn btn--settings" id="btn-settings">⚙ 設定</button>
-</header>
- 
-<!-- サイドバー -->
-<aside id="sidebar">（読み込み中...）</aside>
- 
-<!-- メインフィード -->
-<main id="main">
-  <div id="feed"></div>
-  <div id="input-area">
-    <textarea
-      id="player-input"
-      placeholder="指示を入力してください... (Ctrl+Enter で送信)"
-    ></textarea>
-    <button class="btn btn--send" id="btn-send">送信</button>
-  </div>
-</main>
- 
-<!-- 作戦パネル -->
-<aside id="op-panel">
-  <div class="panel-title">作戦状況</div>
-</aside>
- 
-<!-- 設定モーダル -->
-<div id="settings-modal" role="dialog" aria-modal="true" aria-label="設定">
-  <div class="modal-box">
-    <h2>⚙ モデル設定</h2>
- 
-    <div class="form-group">
-      <label>プロバイダ</label>
-      <select id="cfg-provider">
-        <option value="ollama">Ollama（ローカル）</option>
-        <option value="openrouter">OpenRouter（API）</option>
-        <option value="anthropic">Anthropic（API）</option>
-      </select>
-    </div>
- 
-    <div class="form-group" id="grp-ollama-url">
-      <label>Ollama URL</label>
-      <input type="text" id="cfg-ollama-url" placeholder="http://localhost:11434">
-      <div class="form-hint">CORSを有効にするには: OLLAMA_ORIGINS=* ollama serve</div>
-    </div>
- 
-    <div class="form-group" id="grp-api-key" style="display:none">
-      <label>APIキー</label>
-      <input type="password" id="cfg-api-key" placeholder="sk-...">
-    </div>
- 
-    <div class="form-group">
-      <label>プリセット</label>
-      <select id="cfg-preset"></select>
-    </div>
- 
-    <div id="grp-custom" style="display:none">
-      <div class="form-group">
-        <label>GMモデル</label>
-        <input type="text" id="cfg-gm-model" placeholder="例: gemma4:12b">
+  <div id="title-screen">
+    <div class="title-content">
+      <div class="title-eyebrow">Public Security Intelligence Simulation</div>
+      <div class="title-logo">NACHT<span class="title-accent">VIGIL</span></div>
+      <div class="title-rule"></div>
+      <div class="title-tagline">Surveillance, intelligence, and covert operations</div>
+      <div class="title-en">Simulation Control Interface</div>
+      <div class="title-actions">
+        <button class="title-btn title-btn--primary" id="btn-start-game">Start</button>
+        <button class="title-btn" id="btn-title-settings">Settings</button>
       </div>
+      <div class="title-hint">OpenRouter / Ollama / Anthropic support</div>
+    </div>
+  </div>
+
+  <header id="header">
+    <h1>NACHTIVIGIL</h1>
+    <span class="header-meta" id="header-scenario">Scenario standby</span>
+    <span class="header-spacer"></span>
+    <button class="btn btn--settings" id="btn-settings">Settings</button>
+  </header>
+
+  <aside id="sidebar">Loading...</aside>
+
+  <main id="main">
+    <div id="feed"></div>
+    <div id="input-area">
+      <textarea id="player-input" placeholder="Enter your order... (Ctrl+Enter to send)"></textarea>
+      <button class="btn btn--send" id="btn-send">Send</button>
+    </div>
+  </main>
+
+  <aside id="op-panel">
+    <div class="panel-title">Operations</div>
+  </aside>
+
+  <div id="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="modal-box">
+      <h2>Model Settings</h2>
+
       <div class="form-group">
-        <label>NPCモデル</label>
-        <input type="text" id="cfg-npc-model" placeholder="例: gemma4:e4b">
+        <label for="cfg-provider">Provider</label>
+        <select id="cfg-provider">
+          <option value="ollama">Ollama (local)</option>
+          <option value="openrouter">OpenRouter</option>
+          <option value="anthropic">Anthropic</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="grp-ollama-url">
+        <label for="cfg-ollama-url">Ollama URL</label>
+        <input type="text" id="cfg-ollama-url" placeholder="http://localhost:11434">
+        <div class="form-hint">If browser access fails, check your Ollama CORS settings.</div>
+      </div>
+
+      <div class="form-group" id="grp-api-key" style="display:none">
+        <label for="cfg-api-key">API Key</label>
+        <input type="password" id="cfg-api-key" placeholder="sk-...">
+      </div>
+
+      <div class="form-group">
+        <label for="cfg-preset">Preset</label>
+        <select id="cfg-preset"></select>
+      </div>
+
+      <div id="grp-custom" style="display:none">
+        <div class="form-group">
+          <label for="cfg-gm-model">GM Model</label>
+          <input type="text" id="cfg-gm-model" placeholder="gemma4:12b">
+        </div>
+        <div class="form-group">
+          <label for="cfg-npc-model">NPC Model</label>
+          <input type="text" id="cfg-npc-model" placeholder="gemma4:e4b">
+        </div>
+      </div>
+
+      <div id="test-result"></div>
+
+      <div class="modal-actions">
+        <button class="btn" id="btn-test-conn">Test</button>
+        <button class="btn" id="btn-cfg-cancel">Cancel</button>
+        <button class="btn btn--send" id="btn-cfg-save">Save</button>
       </div>
     </div>
- 
-    <div id="test-result"></div>
- 
-    <div class="modal-actions">
-      <button class="btn" id="btn-test-conn">接続テスト</button>
-      <button class="btn" id="btn-cfg-cancel">キャンセル</button>
-      <button class="btn btn--send" id="btn-cfg-save">保存</button>
-    </div>
   </div>
-</div>
- 
-<!-- ────────────────────────────────────────
-     スクリプト（依存順に読み込む）
-     ※ ES modules 不使用 → file:// で直接開ける
-──────────────────────────────────────── -->
-<script src="config/modelPresets.js"></script>
-<script src="src/core/gameState.js"></script>
-<script src="src/agents/registry.js"></script>
-<script src="src/llm/client.js"></script>
-<script src="src/llm/memory.js"></script>
-<script src="src/agents/gm.js"></script>
-<script src="src/ui/feed.js"></script>
-<script src="src/ui/sidebar.js"></script>
-<script src="src/ui/opPanel.js"></script>
- 
-<script>
-// ─────────────────────────────────────────────
-// DOM参照（最初にまとめて取得 — TDZ防止）
-// ─────────────────────────────────────────────
- 
-const titleScreen  = document.getElementById("title-screen");
-const feedEl       = document.getElementById("feed");
-const sidebarEl    = document.getElementById("sidebar");
-const opPanelEl    = document.getElementById("op-panel");
-const inputEl      = document.getElementById("player-input");
-const sendBtn      = document.getElementById("btn-send");
-const modal        = document.getElementById("settings-modal");
-const providerSel  = document.getElementById("cfg-provider");
-const presetSel    = document.getElementById("cfg-preset");
-const ollamaUrlEl  = document.getElementById("cfg-ollama-url");
-const apiKeyEl     = document.getElementById("cfg-api-key");
-const gmModelEl    = document.getElementById("cfg-gm-model");
-const npcModelEl   = document.getElementById("cfg-npc-model");
-const testResultEl = document.getElementById("test-result");
-const grpOllamaUrl = document.getElementById("grp-ollama-url");
-const grpApiKey    = document.getElementById("grp-api-key");
-const grpCustom    = document.getElementById("grp-custom");
- 
-// ─────────────────────────────────────────────
-// 初期化
-// ─────────────────────────────────────────────
- 
-try {
-  initFeed(feedEl);
-  initSidebar(sidebarEl);
-  initOpPanel(opPanelEl);
-} catch (e) {
-  console.error("[INIT] 初期化エラー:", e);
-}
- 
-// ─────────────────────────────────────────────
-// タイトル画面
-// ─────────────────────────────────────────────
- 
-document.getElementById("btn-start-game").addEventListener("click", startGame);
-document.getElementById("btn-title-settings").addEventListener("click", openModal);
- 
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && titleScreen && titleScreen.parentNode) {
-    openModal();
-  }
-});
- 
-function startGame() {
-  titleScreen.classList.add("hiding");
-  titleScreen.addEventListener("animationend", () => titleScreen.remove(), { once: true });
- 
-  addMessage(
-    "**NACHTIVIGIL** へようこそ。\n" +
-    "公安警察 捜査・諜報・協力者育成シミュレーション。\n\n" +
-    "まず設定（⚙）でLLMモデルを設定し、接続テストを行ってください。\n" +
-    "設定後、「シナリオ開始」と入力するとゲームが始まります。",
-    "system"
-  );
-}
- 
-// ─────────────────────────────────────────────
-// 入力送信
-// ─────────────────────────────────────────────
- 
-let _abortCtrl = null;
- 
-async function handleSend() {
-  const text = inputEl.value.trim();
-  if (!text) return;
- 
-  inputEl.value = "";
-  addMessage(text, "player");
- 
-  sendBtn.disabled = true;
-  _abortCtrl = new AbortController();
-  const removeLoader = addLoader();
- 
-  try {
-    const result = await sendToGM(text, { signal: _abortCtrl.signal });
- 
-    removeLoader();
- 
-    if (result.text) {
-      addMessage(result.text, "gm");
-    }
- 
-    // 作戦提案
-    if (result.operation) {
-      addOperationCard(
-        result.operation,
-        (op) => {
-          startOperation(op);
-          renderSidebar();
-          renderOpPanel();
-        },
-        (_op) => addMessage("作戦を却下しました。", "system")
+
+  <script type="module">
+    import { MODEL_PRESETS, resolvePreset, saveCfg } from "./config/modelPresets.js";
+    import { initFeed, addMessage, addLoader, addOperationCard } from "./src/ui/feed.js";
+    import { initSidebar, renderSidebar } from "./src/ui/sidebar.js";
+    import { initOpPanel, renderOpPanel, startOperation } from "./src/ui/opPanel.js";
+    import { getCfg, setCfg, testConnection } from "./src/llm/client.js";
+    import { sendToGM } from "./src/agents/gm.js";
+
+    const titleScreen = document.getElementById("title-screen");
+    const feedEl = document.getElementById("feed");
+    const sidebarEl = document.getElementById("sidebar");
+    const opPanelEl = document.getElementById("op-panel");
+    const inputEl = document.getElementById("player-input");
+    const sendBtn = document.getElementById("btn-send");
+    const modal = document.getElementById("settings-modal");
+    const providerSel = document.getElementById("cfg-provider");
+    const presetSel = document.getElementById("cfg-preset");
+    const ollamaUrlEl = document.getElementById("cfg-ollama-url");
+    const apiKeyEl = document.getElementById("cfg-api-key");
+    const gmModelEl = document.getElementById("cfg-gm-model");
+    const npcModelEl = document.getElementById("cfg-npc-model");
+    const testResultEl = document.getElementById("test-result");
+    const grpOllamaUrl = document.getElementById("grp-ollama-url");
+    const grpApiKey = document.getElementById("grp-api-key");
+    const grpCustom = document.getElementById("grp-custom");
+
+    initFeed(feedEl);
+    initSidebar(sidebarEl);
+    initOpPanel(opPanelEl);
+
+    document.getElementById("btn-start-game").addEventListener("click", startGame);
+    document.getElementById("btn-title-settings").addEventListener("click", openModal);
+    document.getElementById("btn-settings").addEventListener("click", openModal);
+    document.getElementById("btn-cfg-cancel").addEventListener("click", closeModal);
+    document.getElementById("btn-cfg-save").addEventListener("click", saveSettings);
+    document.getElementById("btn-test-conn").addEventListener("click", runConnectionTest);
+    sendBtn.addEventListener("click", handleSend);
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) closeModal();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        if (titleScreen?.parentNode) openModal();
+        else closeModal();
+      }
+    });
+
+    inputEl.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && event.ctrlKey) {
+        event.preventDefault();
+        handleSend();
+      }
+    });
+
+    providerSel.addEventListener("change", () => {
+      updateProviderUI(providerSel.value);
+      updatePresetOptions(providerSel.value, "custom");
+    });
+
+    presetSel.addEventListener("change", onPresetChange);
+
+    function startGame() {
+      titleScreen.classList.add("hiding");
+      setTimeout(() => titleScreen.remove(), 500);
+      addMessage(
+        "**NACHTIVIGIL** online. Configure your models in Settings, then issue your first order.",
+        "system",
       );
     }
- 
-    // STATEが更新されたのでサイドバー再描画
-    renderSidebar();
-    renderOpPanel();
- 
-  } catch (e) {
-    removeLoader();
-    if (e.name === "AbortError") {
-      addMessage("（送信を中断しました）", "system");
-    } else {
-      addMessage("エラー: " + e.message, "alert");
-      console.error(e);
-    }
-  } finally {
-    sendBtn.disabled = false;
-    _abortCtrl = null;
-    inputEl.focus();
-  }
-}
- 
-sendBtn.addEventListener("click", handleSend);
-inputEl.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && e.ctrlKey) {
-    e.preventDefault();
-    handleSend();
-  }
-});
- 
-// ─────────────────────────────────────────────
-// 設定モーダル
-// ─────────────────────────────────────────────
- 
 
-document.getElementById("btn-settings").addEventListener("click", openModal);
-document.getElementById("btn-cfg-cancel").addEventListener("click", closeModal);
-document.getElementById("btn-cfg-save").addEventListener("click", saveSettings);
-document.getElementById("btn-test-conn").addEventListener("click", runConnectionTest);
-modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
- 
-function openModal() {
-  const cfg = getCfg();
-  providerSel.value  = cfg.provider;
-  ollamaUrlEl.value  = cfg.ollamaUrl;
-  apiKeyEl.value     = cfg.apiKey;
-  updateProviderUI(cfg.provider);
-  updatePresetOptions(cfg.provider, cfg.preset);
-  gmModelEl.value    = cfg.gm.model;
-  npcModelEl.value   = cfg.npc.model;
-  testResultEl.textContent = "";
-  testResultEl.className   = "";
-  modal.classList.add("open");
-}
- 
-function closeModal() {
-  modal.classList.remove("open");
-}
- 
-function updateProviderUI(provider) {
-  grpOllamaUrl.style.display = provider === "ollama" ? "" : "none";
-  grpApiKey.style.display    = provider !== "ollama" ? "" : "none";
-}
- 
-function updatePresetOptions(provider, currentPreset) {
-  presetSel.innerHTML = "";
-  const presets = MODEL_PRESETS[provider] || {};
-  for (const [key, val] of Object.entries(presets)) {
-    const opt = document.createElement("option");
-    opt.value = key;
-    opt.textContent = val.label;
-    if (key === currentPreset) opt.selected = true;
-    presetSel.appendChild(opt);
-  }
-  onPresetChange();
-}
- 
-function onPresetChange() {
-  const isCustom = presetSel.value === "custom";
-  grpCustom.style.display = isCustom ? "" : "none";
-  if (!isCustom) {
-    const preset = resolvePreset(providerSel.value, presetSel.value);
-    if (preset) {
-      gmModelEl.value  = preset.gm.model;
-      npcModelEl.value = preset.npc.model;
-    }
-  }
-}
- 
-providerSel.addEventListener("change", () => {
-  updateProviderUI(providerSel.value);
-  updatePresetOptions(providerSel.value, "custom");
-});
-presetSel.addEventListener("change", onPresetChange);
- 
-function saveSettings() {
-  const provider = providerSel.value;
-  const preset   = presetSel.value;
-  const newCfg = {
-    provider,
-    ollamaUrl: ollamaUrlEl.value.trim() || "http://localhost:11434",
-    apiKey:    apiKeyEl.value.trim(),
-    preset,
-    gm:  { model: gmModelEl.value.trim(),  thinking: false },
-    npc: { model: npcModelEl.value.trim(), thinking: false },
-  };
-  setCfg(newCfg);
-  saveCfg(newCfg);
-  closeModal();
-  addMessage("⚙ 設定を保存しました。", "system");
-}
- 
-async function runConnectionTest() {
-  testResultEl.textContent = "接続テスト中...";
-  testResultEl.className   = "";
-  document.getElementById("btn-test-conn").disabled = true;
+    let abortCtrl = null;
 
-  setCfg({
-    provider:  providerSel.value,
-    ollamaUrl: ollamaUrlEl.value.trim() || "http://localhost:11434",
-    apiKey:    apiKeyEl.value.trim(),
-    gm:  { model: gmModelEl.value.trim(),  thinking: false },
-    npc: { model: npcModelEl.value.trim(), thinking: false },
-  });
- 
-  try {
-    const r = await testConnection();
-    if (r.ok) {
-      testResultEl.textContent = "✓ 接続成功  GM: " + r.gmMs + "ms / NPC: " + r.npcMs + "ms";
-      testResultEl.className   = "ok";
-    } else {
-      testResultEl.textContent = "✗ 接続失敗: " + r.error;
-      testResultEl.className   = "err";
+    async function handleSend() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+
+      inputEl.value = "";
+      addMessage(text, "player");
+      sendBtn.disabled = true;
+      abortCtrl = new AbortController();
+      const removeLoader = addLoader();
+
+      try {
+        const result = await sendToGM(text, { signal: abortCtrl.signal });
+        removeLoader();
+
+        if (result.text) addMessage(result.text, "gm");
+
+        if (result.operation) {
+          addOperationCard(
+            result.operation,
+            (op) => {
+              startOperation(op);
+              renderSidebar();
+              renderOpPanel();
+            },
+            () => addMessage("Operation proposal rejected.", "system"),
+          );
+        }
+
+        renderSidebar();
+        renderOpPanel();
+      } catch (error) {
+        removeLoader();
+        if (error.name === "AbortError") addMessage("Request aborted.", "system");
+        else {
+          addMessage(`Error: ${error.message}`, "alert");
+          console.error(error);
+        }
+      } finally {
+        sendBtn.disabled = false;
+        abortCtrl = null;
+        inputEl.focus();
+      }
     }
-  } catch (e) {
-    testResultEl.textContent = "✗ エラー: " + e.message;
-    testResultEl.className   = "err";
-  } finally {
-    document.getElementById("btn-test-conn").disabled = false;
-  }
-}
-</script>
+
+    function openModal() {
+      const cfg = getCfg();
+      providerSel.value = cfg.provider;
+      ollamaUrlEl.value = cfg.ollamaUrl;
+      apiKeyEl.value = cfg.apiKey;
+      updateProviderUI(cfg.provider);
+      updatePresetOptions(cfg.provider, cfg.preset);
+      gmModelEl.value = cfg.gm.model;
+      npcModelEl.value = cfg.npc.model;
+      testResultEl.textContent = "";
+      testResultEl.className = "";
+      modal.classList.add("open");
+    }
+
+    function closeModal() {
+      modal.classList.remove("open");
+    }
+
+    function updateProviderUI(provider) {
+      grpOllamaUrl.style.display = provider === "ollama" ? "" : "none";
+      grpApiKey.style.display = provider === "ollama" ? "none" : "";
+    }
+
+    function updatePresetOptions(provider, currentPreset) {
+      presetSel.innerHTML = "";
+      const presets = MODEL_PRESETS[provider] || {};
+      for (const [key, value] of Object.entries(presets)) {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = value.label;
+        opt.selected = key === currentPreset;
+        presetSel.appendChild(opt);
+      }
+      onPresetChange();
+    }
+
+    function onPresetChange() {
+      const isCustom = presetSel.value === "custom";
+      grpCustom.style.display = isCustom ? "" : "none";
+      if (!isCustom) {
+        const preset = resolvePreset(providerSel.value, presetSel.value);
+        if (preset) {
+          gmModelEl.value = preset.gm.model;
+          npcModelEl.value = preset.npc.model;
+        }
+      }
+    }
+
+    function saveSettings() {
+      const newCfg = {
+        provider: providerSel.value,
+        ollamaUrl: ollamaUrlEl.value.trim() || "http://localhost:11434",
+        apiKey: apiKeyEl.value.trim(),
+        preset: presetSel.value,
+        gm: { model: gmModelEl.value.trim(), thinking: false },
+        npc: { model: npcModelEl.value.trim(), thinking: false },
+      };
+
+      setCfg(newCfg);
+      saveCfg(newCfg);
+      closeModal();
+      addMessage("Settings saved.", "system");
+    }
+
+    async function runConnectionTest() {
+      testResultEl.textContent = "Testing...";
+      testResultEl.className = "";
+      document.getElementById("btn-test-conn").disabled = true;
+
+      setCfg({
+        provider: providerSel.value,
+        ollamaUrl: ollamaUrlEl.value.trim() || "http://localhost:11434",
+        apiKey: apiKeyEl.value.trim(),
+        gm: { model: gmModelEl.value.trim(), thinking: false },
+        npc: { model: npcModelEl.value.trim(), thinking: false },
+      });
+
+      try {
+        const result = await testConnection();
+        if (result.ok) {
+          testResultEl.textContent = `OK: GM ${result.gmMs}ms / NPC ${result.npcMs}ms`;
+          testResultEl.className = "ok";
+        } else {
+          testResultEl.textContent = `Failed: ${result.error}`;
+          testResultEl.className = "err";
+        }
+      } catch (error) {
+        testResultEl.textContent = `Error: ${error.message}`;
+        testResultEl.className = "err";
+      } finally {
+        document.getElementById("btn-test-conn").disabled = false;
+      }
+    }
+  </script>
 </body>
 </html>

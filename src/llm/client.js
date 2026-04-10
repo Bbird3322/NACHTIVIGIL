@@ -1,67 +1,39 @@
-// src/llm/client.js
-// LLM呼び出し — プロバイダ切り替え・2トラック（GM/NPC）・指数バックオフリトライ
- 
-import { loadCfg } from "../../config/modelPresets.js";
- 
-/** 現在の設定（ゲーム起動時に loadCfg() で初期化） */
+﻿import { loadCfg } from "../../config/modelPresets.js";
+
 let CFG = loadCfg();
- 
-/** 設定を外部から差し替える（difficultyUI.js / 接続テスト用） */
+
 export function setCfg(newCfg) {
   CFG = { ...CFG, ...newCfg };
 }
- 
+
 export function getCfg() {
   return CFG;
 }
- 
-// ─────────────────────────────────────────────
-// 公開API
-// ─────────────────────────────────────────────
- 
-/**
- * GMエージェント呼び出し
- * @param {string} systemPrompt
- * @param {Array<{role:string, content:string}>} messages
- * @param {object} [opts]
- * @param {number} [opts.retries=3]
- * @param {AbortSignal} [opts.signal]
- * @returns {Promise<string>}
- */
+
 export async function callGM(systemPrompt, messages, opts = {}) {
-  return _call(CFG.gm, systemPrompt, messages, opts);
+  return callModel(CFG.gm, systemPrompt, messages, opts);
 }
- 
-/**
- * NPCエージェント呼び出し
- * @param {string} systemPrompt
- * @param {Array<{role:string, content:string}>} messages
- * @param {object} [opts]
- * @param {number} [opts.retries=3]
- * @param {AbortSignal} [opts.signal]
- * @returns {Promise<string>}
- */
+
 export async function callNPC(systemPrompt, messages, opts = {}) {
-  return _call(CFG.npc, systemPrompt, messages, opts);
+  return callModel(CFG.npc, systemPrompt, messages, opts);
 }
- 
-/**
- * 接続テスト（GMモデルに「こんにちは」を送ってレスポンスタイムを返す）
- * @returns {Promise<{ok:boolean, gmMs:number|null, npcMs:number|null, error:string|null}>}
- */
+
 export async function testConnection() {
   const ping = async (modelCfg) => {
     const start = Date.now();
     try {
-      await _call(modelCfg, "あなたはAIアシスタントです。", [
-        { role: "user", content: "こんにちは" },
-      ], { retries: 1 });
+      await callModel(
+        modelCfg,
+        "You are a test assistant. Reply briefly.",
+        [{ role: "user", content: "Ping" }],
+        { retries: 1 },
+      );
       return { ok: true, ms: Date.now() - start };
-    } catch (e) {
-      return { ok: false, ms: null, error: String(e) };
+    } catch (error) {
+      return { ok: false, ms: null, error: String(error) };
     }
   };
- 
+
   const [gm, npc] = await Promise.all([ping(CFG.gm), ping(CFG.npc)]);
   return {
     ok: gm.ok && npc.ok,
@@ -70,110 +42,86 @@ export async function testConnection() {
     error: gm.error ?? npc.error ?? null,
   };
 }
- 
-// ─────────────────────────────────────────────
-// 内部実装
-// ─────────────────────────────────────────────
- 
-async function _call(modelCfg, systemPrompt, messages, opts = {}) {
+
+async function callModel(modelCfg, systemPrompt, messages, opts = {}) {
   const { retries = 3, signal } = opts;
- 
-  if (!modelCfg.model) {
-    throw new Error("モデルが設定されていません。設定画面でモデルを指定してください。");
+
+  if (!modelCfg?.model) {
+    throw new Error("Model is not configured. Open settings and choose a model.");
   }
- 
-  for (let attempt = 0; attempt < retries; attempt++) {
+
+  for (let attempt = 0; attempt < retries; attempt += 1) {
     try {
-      const body = _buildBody(modelCfg, systemPrompt, messages);
-      const res = await fetch(_getEndpoint(), {
+      const res = await fetch(getEndpoint(), {
         method: "POST",
-        headers: _buildHeaders(),
-        body: JSON.stringify(body),
+        headers: buildHeaders(),
+        body: JSON.stringify(buildBody(modelCfg, systemPrompt, messages)),
         signal,
       });
- 
+
       if (!res.ok) {
         const text = await res.text().catch(() => "");
-        // 429 Rate Limit: 指数バックオフ後リトライ
-        if (res.status === 429 && attempt < retries - 1) {
-          const waitMs = Math.min(4000 * Math.pow(2, attempt), 30000);
-          console.warn(`[LLM] 429 Rate Limit. ${waitMs}ms 待機後リトライ (${attempt + 1}/${retries})`);
-          await _sleep(waitMs);
-          continue;
-        }
-        // 5xx サーバーエラー: リトライ
-        if (res.status >= 500 && attempt < retries - 1) {
-          const waitMs = 2000 * Math.pow(2, attempt);
-          console.warn(`[LLM] HTTP ${res.status}. ${waitMs}ms 待機後リトライ`);
-          await _sleep(waitMs);
+        if ((res.status === 429 || res.status >= 500) && attempt < retries - 1) {
+          await sleep(Math.min(2000 * 2 ** attempt, 10000));
           continue;
         }
         throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
       }
- 
+
       const data = await res.json();
-      return _extractText(data);
- 
-    } catch (e) {
-      // AbortSignal によるキャンセルはリトライしない
-      if (e.name === "AbortError") throw e;
-      // ネットワークエラー: リトライ
+      return extractText(data);
+    } catch (error) {
+      if (error.name === "AbortError") throw error;
       if (attempt < retries - 1) {
-        const waitMs = 2000 * Math.pow(2, attempt);
-        console.warn(`[LLM] ネットワークエラー: ${e.message}. ${waitMs}ms 待機後リトライ`);
-        await _sleep(waitMs);
+        await sleep(Math.min(2000 * 2 ** attempt, 10000));
         continue;
       }
-      throw e;
+      throw error;
     }
   }
+
+  throw new Error("LLM call failed.");
 }
- 
-function _buildBody(modelCfg, systemPrompt, messages) {
-  const provider = CFG.provider;
- 
-  // Anthropic形式（claude系モデル）
-  if (provider === "anthropic") {
+
+function buildBody(modelCfg, systemPrompt, messages) {
+  if (CFG.provider === "anthropic") {
     return {
-      model:      modelCfg.model,
+      model: modelCfg.model,
       max_tokens: 2048,
-      system:     systemPrompt,
+      system: systemPrompt,
       messages,
     };
   }
- 
-  // OpenAI互換形式（Ollama / OpenRouter 共通）
+
   const base = {
-    model:    modelCfg.model,
+    model: modelCfg.model,
     messages: [{ role: "system", content: systemPrompt }, ...messages],
-    stream:   false,
+    stream: false,
   };
- 
-  if (provider === "ollama") {
+
+  if (CFG.provider === "ollama") {
     return {
       ...base,
       options: {
-        temperature:    0.7,
-        top_p:          0.95,
-        top_k:          64,
-        repeat_penalty: 1.0,
-        num_ctx:        8192,    // デフォルト2048では長いセッションに不足
+        temperature: 0.7,
+        top_p: 0.95,
+        top_k: 64,
+        repeat_penalty: 1,
+        num_ctx: 8192,
       },
     };
   }
- 
-  if (provider === "openrouter") {
-    // Gemma 4: reasoning を必ずオフ（有効だとSTATEタグのJSONが壊れる）
-    const extra = modelCfg.thinking === false
-      ? { reasoning: { enabled: false } }
-      : {};
-    return { ...base, ...extra };
+
+  if (CFG.provider === "openrouter") {
+    return modelCfg.thinking === false
+      ? { ...base, reasoning: { enabled: false } }
+      : base;
   }
- 
+
   return base;
 }
- 
-function _getEndpoint() {
+
+function getEndpoint() {
   switch (CFG.provider) {
     case "ollama":
       return `${CFG.ollamaUrl}/v1/chat/completions`;
@@ -182,33 +130,35 @@ function _getEndpoint() {
     case "anthropic":
       return "https://api.anthropic.com/v1/messages";
     default:
-      throw new Error(`未知のプロバイダ: ${CFG.provider}`);
+      throw new Error(`Unknown provider: ${CFG.provider}`);
   }
 }
- 
-function _buildHeaders() {
-  const h = { "Content-Type": "application/json" };
+
+function buildHeaders() {
+  const headers = { "Content-Type": "application/json" };
+
   if (CFG.provider === "openrouter" && CFG.apiKey) {
-    h["Authorization"] = `Bearer ${CFG.apiKey}`;
-    h["HTTP-Referer"] = window.location.origin;
-    h["X-Title"] = "NACHTIVIGIL";
+    headers.Authorization = `Bearer ${CFG.apiKey}`;
+    headers["HTTP-Referer"] = window.location.origin;
+    headers["X-Title"] = "NACHTIVIGIL";
   }
+
   if (CFG.provider === "anthropic" && CFG.apiKey) {
-    h["x-api-key"] = CFG.apiKey;
-    h["anthropic-version"] = "2023-06-01";
+    headers["x-api-key"] = CFG.apiKey;
+    headers["anthropic-version"] = "2023-06-01";
   }
-  return h;
+
+  return headers;
 }
- 
-function _extractText(data) {
-  // Anthropic形式
+
+function extractText(data) {
   if (Array.isArray(data.content)) {
-    const textBlock = data.content.find(b => b.type === "text");
+    const textBlock = data.content.find((block) => block.type === "text");
     if (textBlock?.text) return textBlock.text;
   }
-  // OpenAI互換形式（Ollama / OpenRouter）
+
   const choice = data.choices?.[0];
   return choice?.message?.content ?? choice?.text ?? "";
 }
- 
-const _sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
