@@ -597,10 +597,42 @@
  
 <script>
 // ─────────────────────────────────────────────
-// タイトル画面
+// DOM参照（最初にまとめて取得 — TDZ防止）
 // ─────────────────────────────────────────────
  
-const titleScreen = document.getElementById("title-screen");
+const titleScreen  = document.getElementById("title-screen");
+const feedEl       = document.getElementById("feed");
+const sidebarEl    = document.getElementById("sidebar");
+const opPanelEl    = document.getElementById("op-panel");
+const inputEl      = document.getElementById("player-input");
+const sendBtn      = document.getElementById("btn-send");
+const modal        = document.getElementById("settings-modal");
+const providerSel  = document.getElementById("cfg-provider");
+const presetSel    = document.getElementById("cfg-preset");
+const ollamaUrlEl  = document.getElementById("cfg-ollama-url");
+const apiKeyEl     = document.getElementById("cfg-api-key");
+const gmModelEl    = document.getElementById("cfg-gm-model");
+const npcModelEl   = document.getElementById("cfg-npc-model");
+const testResultEl = document.getElementById("test-result");
+const grpOllamaUrl = document.getElementById("grp-ollama-url");
+const grpApiKey    = document.getElementById("grp-api-key");
+const grpCustom    = document.getElementById("grp-custom");
+ 
+// ─────────────────────────────────────────────
+// 初期化
+// ─────────────────────────────────────────────
+ 
+try {
+  initFeed(feedEl);
+  initSidebar(sidebarEl);
+  initOpPanel(opPanelEl);
+} catch (e) {
+  console.error("[INIT] 初期化エラー:", e);
+}
+ 
+// ─────────────────────────────────────────────
+// タイトル画面
+// ─────────────────────────────────────────────
  
 document.getElementById("btn-start-game").addEventListener("click", startGame);
 document.getElementById("btn-title-settings").addEventListener("click", openModal);
@@ -623,27 +655,10 @@ function startGame() {
     "system"
   );
 }
-
-// ─────────────────────────────────────────────
-// 初期化
-// ─────────────────────────────────────────────
- 
-const feedEl    = document.getElementById("feed");
-const sidebarEl = document.getElementById("sidebar");
-const opPanelEl = document.getElementById("op-panel");
- 
-initFeed(feedEl);
-initSidebar(sidebarEl);
-initOpPanel(opPanelEl);
- 
-
  
 // ─────────────────────────────────────────────
 // 入力送信
 // ─────────────────────────────────────────────
- 
-const inputEl  = document.getElementById("player-input");
-const sendBtn  = document.getElementById("btn-send");
  
 let _abortCtrl = null;
  
@@ -711,17 +726,6 @@ inputEl.addEventListener("keydown", (e) => {
 // 設定モーダル
 // ─────────────────────────────────────────────
  
-const modal        = document.getElementById("settings-modal");
-const providerSel  = document.getElementById("cfg-provider");
-const presetSel    = document.getElementById("cfg-preset");
-const ollamaUrlEl  = document.getElementById("cfg-ollama-url");
-const apiKeyEl     = document.getElementById("cfg-api-key");
-const gmModelEl    = document.getElementById("cfg-gm-model");
-const npcModelEl   = document.getElementById("cfg-npc-model");
-const testResultEl = document.getElementById("test-result");
-const grpOllamaUrl = document.getElementById("grp-ollama-url");
-const grpApiKey    = document.getElementById("grp-api-key");
-const grpCustom    = document.getElementById("grp-custom");
 
 document.getElementById("btn-settings").addEventListener("click", openModal);
 document.getElementById("btn-cfg-cancel").addEventListener("click", closeModal);
