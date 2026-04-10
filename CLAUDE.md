@@ -1186,12 +1186,12 @@ function checkAchievements(GS, action) {
 ## 実装優先順位
 
 ### Phase 1 — コア基盤
-- [ ] GS・playerKnowledge 定義（gameState.js）
-- [ ] ダイス・日付・予算・フラグ判定（mechanics.js）
-- [ ] LLMクライアント・プロバイダ切り替え・リトライ（client.js）
-- [ ] GMエージェント + システムプロンプト（gm.js）
-- [ ] 基本UI（feed / sidebar / opPanel）
-- [ ] difficulty.json ロード・即詰みポリシー
+- [x] GS・playerKnowledge 定義（gameState.js）
+- [x] ダイス・日付・予算・フラグ判定（mechanics.js）
+- [x] LLMクライアント・プロバイダ切り替え・リトライ（client.js）
+- [x] GMエージェント + システムプロンプト（gm.js）
+- [x] 基本UI（feed / sidebar / opPanel）
+- [x] difficulty.json ロード・即詰みポリシー
 
 ### Phase 2 — ワールドDB・イベント
 - [ ] worldDB.js（worldEvents / intelPool / npcStates）

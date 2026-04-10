@@ -55,11 +55,24 @@
       npc: { model: "", thinking: false },
     },
   },
+  llama_cpp: {
+    local: {
+      label: "llama.cpp ローカル",
+      gm: { model: "local-model", thinking: false },
+      npc: { model: "local-model", thinking: false },
+    },
+    custom: {
+      label: "カスタム",
+      gm: { model: "", thinking: false },
+      npc: { model: "", thinking: false },
+    },
+  },
 };
 
 const DEFAULT_CFG = {
   provider: "ollama",
   ollamaUrl: "http://localhost:11434",
+  llamaCppUrl: "http://localhost:8080",
   ollamaNumCtx: 8192,
   apiKey: "",
   language: "ja",
@@ -143,6 +156,8 @@ function defaultPresetForProvider(provider) {
       return "free";
     case "anthropic":
       return "default";
+    case "llama_cpp":
+      return "local";
     case "ollama":
     default:
       return "high";
@@ -156,6 +171,8 @@ function isModelValidForProvider(provider, model) {
       return model.includes("/");
     case "anthropic":
       return !model.includes("/");
+    case "llama_cpp":
+      return typeof model === "string" && model.trim().length > 0;
     case "ollama":
       return model.startsWith("gemma4");
     default:

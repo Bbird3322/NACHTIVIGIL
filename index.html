@@ -236,7 +236,7 @@
 
     #settings-modal {
       display: none;
-      position: fixed;
+      position: absolute;
       inset: 0;
       background: rgba(0, 0, 0, 0.7);
       z-index: 300;
@@ -284,7 +284,7 @@
     #test-result.err { color: var(--danger); }
 
     #title-screen {
-      position: fixed;
+      position: absolute;
       inset: 0;
       background: #080b0f;
       z-index: 200;
@@ -412,6 +412,7 @@
         <label for="cfg-provider">プロバイダ</label>
         <select id="cfg-provider">
           <option value="ollama">Ollama (ローカル)</option>
+          <option value="llama_cpp">llama.cpp (ローカル)</option>
           <option value="openrouter">OpenRouter</option>
           <option value="anthropic">Anthropic</option>
         </select>
@@ -429,6 +430,12 @@
         <label for="cfg-ollama-url">Ollama URL</label>
         <input type="text" id="cfg-ollama-url" placeholder="http://localhost:11434">
         <div class="form-hint">ブラウザから接続できない場合は Ollama の CORS 設定を確認してください。</div>
+      </div>
+
+      <div class="form-group" id="grp-llama-url" style="display:none">
+        <label for="cfg-llama-url">llama.cpp URL</label>
+        <input type="text" id="cfg-llama-url" placeholder="http://localhost:8080">
+        <div class="form-hint">llama-server を起動し、OpenAI互換の /v1/chat/completions にブラウザから到達できるようにしてください。</div>
       </div>
 
       <div class="form-group" id="grp-ollama-num-ctx">
@@ -497,6 +504,7 @@
     const presetSel = document.getElementById("cfg-preset");
     const ollamaUrlEl = document.getElementById("cfg-ollama-url");
     const apiKeyEl = document.getElementById("cfg-api-key");
+    const llamaCppUrlEl = document.getElementById("cfg-llama-url");
     const languageSel = document.getElementById("cfg-language");
     const ollamaNumCtxEl = document.getElementById("cfg-ollama-num-ctx");
     const gmModelEl = document.getElementById("cfg-gm-model");
@@ -504,6 +512,7 @@
     const ignoreRamCheckEl = document.getElementById("cfg-ignore-ram-check");
     const testResultEl = document.getElementById("test-result");
     const grpOllamaUrl = document.getElementById("grp-ollama-url");
+    const grpLlamaUrl = document.getElementById("grp-llama-url");
     const grpOllamaNumCtx = document.getElementById("grp-ollama-num-ctx");
     const grpApiKey = document.getElementById("grp-api-key");
     const grpCustom = document.getElementById("grp-custom");
@@ -541,6 +550,10 @@
       if (npcLabel) npcLabel.textContent = t("ui.npcModel");
       const ollamaHint = document.querySelector("#grp-ollama-url .form-hint");
       if (ollamaHint) ollamaHint.textContent = t("ui.ollamaHint");
+      const llamaCppLabel = document.querySelector("label[for='cfg-llama-url']");
+      if (llamaCppLabel) llamaCppLabel.textContent = t("ui.llamaCppUrl");
+      const llamaCppHint = document.querySelector("#grp-llama-url .form-hint");
+      if (llamaCppHint) llamaCppHint.textContent = t("ui.llamaCppHint");
       const ollamaNumCtxLabel = document.querySelector("label[for='cfg-ollama-num-ctx']");
       if (ollamaNumCtxLabel) ollamaNumCtxLabel.textContent = t("ui.ollamaNumCtx");
       const ollamaNumCtxHint = document.querySelector("#grp-ollama-num-ctx .form-hint");
@@ -659,6 +672,7 @@
       providerSel.value = cfg.provider;
       languageSel.value = cfg.language ?? "ja";
       ollamaUrlEl.value = cfg.ollamaUrl;
+      llamaCppUrlEl.value = cfg.llamaCppUrl ?? "http://localhost:8080";
       ollamaNumCtxEl.value = cfg.ollamaNumCtx ?? 8192;
       apiKeyEl.value = cfg.apiKey;
       updateProviderUI(cfg.provider);
@@ -677,6 +691,7 @@
 
     function updateProviderUI(provider) {
       grpOllamaUrl.style.display = provider === "ollama" ? "" : "none";
+      grpLlamaUrl.style.display = provider === "llama_cpp" ? "" : "none";
       grpOllamaNumCtx.style.display = provider === "ollama" ? "" : "none";
       grpApiKey.style.display = provider === "ollama" ? "none" : "";
     }
@@ -719,6 +734,7 @@
       return {
         provider,
         ollamaUrl: ollamaUrlEl.value.trim() || "http://localhost:11434",
+        llamaCppUrl: llamaCppUrlEl.value.trim() || "http://localhost:8080",
         ollamaNumCtx: Number(ollamaNumCtxEl.value) || 8192,
         apiKey: apiKeyEl.value.trim(),
         language: languageSel.value,
@@ -743,6 +759,12 @@
       if (provider === "anthropic" && model.includes("/")) {
         throw new Error(
           `${t("ui.anthropicModelHint", { role: roleLabel, model })}`,
+        );
+      }
+
+      if (provider === "llama_cpp" && !model.trim()) {
+        throw new Error(
+          `${t("ui.llamaCppModelHint", { role: roleLabel })}`,
         );
       }
     }

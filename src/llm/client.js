@@ -75,7 +75,7 @@ async function callModel(modelCfg, systemPrompt, messages, opts = {}) {
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         if ((res.status === 429 || res.status >= 500) && attempt < retries - 1) {
-          await sleep(Math.min(2000 * 2 ** attempt, 10000));
+          await sleep(Math.min(2000 * 2 ** attempt, 30000));
           continue;
         }
         throw buildProviderError(res.status, text, modelCfg.model);
@@ -86,7 +86,7 @@ async function callModel(modelCfg, systemPrompt, messages, opts = {}) {
     } catch (error) {
       if (error.name === "AbortError") throw error;
       if (attempt < retries - 1) {
-        await sleep(Math.min(2000 * 2 ** attempt, 10000));
+        await sleep(Math.min(2000 * 2 ** attempt, 30000));
         continue;
       }
       throw error;
@@ -135,6 +135,14 @@ function buildBody(modelCfg, systemPrompt, messages) {
     };
   }
 
+  if (CFG.provider === "llama_cpp") {
+    return {
+      ...base,
+      temperature: 0.7,
+      top_p: 0.95,
+    };
+  }
+
   return base;
 }
 
@@ -152,6 +160,8 @@ function getEndpoint() {
       return "https://openrouter.ai/api/v1/chat/completions";
     case "anthropic":
       return "https://api.anthropic.com/v1/messages";
+    case "llama_cpp":
+      return `${CFG.llamaCppUrl}/v1/chat/completions`;
     default:
       throw new Error(t("client.unknownProvider", { provider: CFG.provider }));
   }
@@ -169,6 +179,10 @@ function buildHeaders() {
   if (CFG.provider === "anthropic" && CFG.apiKey) {
     headers["x-api-key"] = CFG.apiKey;
     headers["anthropic-version"] = "2023-06-01";
+  }
+
+  if (CFG.provider === "llama_cpp" && CFG.apiKey) {
+    headers.Authorization = `Bearer ${CFG.apiKey}`;
   }
 
   return headers;
